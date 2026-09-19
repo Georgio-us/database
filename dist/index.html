@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101828" />
+    <meta name="description" content="Прототип внутренней базы объектов агентства недвижимости" />
+    <title>Estate Base — Объекты</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="brand">
+          <div class="brand-mark">EB</div>
+          <div>
+            <strong>Estate Base</strong>
+            <span>база агентства</span>
+          </div>
+        </div>
+
+        <nav class="main-nav" aria-label="Основная навигация">
+          <button class="nav-item" data-section="Главная"><span data-icon="home"></span><span>Главная</span></button>
+          <button class="nav-item active" data-section="Объекты"><span data-icon="building"></span><span>Объекты</span><b>152</b></button>
+          <button class="nav-item" data-section="Подборки"><span data-icon="layers"></span><span>Подборки</span><b>8</b></button>
+          <button class="nav-item" data-section="Импорт"><span data-icon="upload"></span><span>Импорт</span></button>
+          <button class="nav-item" data-section="Публикации"><span data-icon="send"></span><span>Публикации</span><i class="nav-alert">3</i></button>
+          <div class="nav-label">Управление</div>
+          <button class="nav-item" data-section="Команда"><span data-icon="users"></span><span>Команда</span></button>
+          <button class="nav-item" data-section="Настройки"><span data-icon="settings"></span><span>Настройки</span></button>
+        </nav>
+
+        <div class="sidebar-foot">
+          <div class="sync-status"><span></span><div><strong>Порталы подключены</strong><small>OLX · DIM.RIA</small></div></div>
+          <button class="user-card">
+            <span class="avatar">АК</span>
+            <span><strong>Анна Коваль</strong><small>Администратор</small></span>
+            <span data-icon="chevron"></span>
+          </button>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <button class="icon-button mobile-menu" id="menuButton" aria-label="Открыть меню"><span data-icon="menu"></span></button>
+          <div class="global-search">
+            <span data-icon="search"></span>
+            <input id="globalSearch" type="search" placeholder="Адрес, собственник, телефон или ID" aria-label="Поиск по базе" />
+            <kbd>⌘ K</kbd>
+          </div>
+          <div class="topbar-actions">
+            <button class="icon-button notification" aria-label="Уведомления"><span data-icon="bell"></span><i></i></button>
+            <button class="secondary-button" id="importButton"><span data-icon="upload"></span>Импорт</button>
+            <button class="primary-button" id="addButton"><span data-icon="plus"></span>Добавить объект</button>
+          </div>
+        </header>
+
+        <section class="content">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">База недвижимости</p>
+              <div class="title-row"><h1>Объекты</h1><span class="count-badge">152</span></div>
+              <p>Рабочая база агентства: собственники, актуальность и публикации.</p>
+            </div>
+            <button class="mobile-add" id="mobileAdd"><span data-icon="plus"></span></button>
+          </div>
+
+          <div class="metric-strip" aria-label="Сводка по объектам">
+            <button class="metric active" data-status="all"><span class="metric-icon blue" data-icon="building"></span><span><small>Все объекты</small><strong>152</strong></span></button>
+            <button class="metric" data-status="active"><span class="metric-icon green" data-icon="check"></span><span><small>Активные</small><strong>128</strong></span></button>
+            <button class="metric" data-status="attention"><span class="metric-icon amber" data-icon="clock"></span><span><small>Требуют внимания</small><strong>12</strong></span></button>
+            <button class="metric" data-status="reserved"><span class="metric-icon violet" data-icon="bookmark"></span><span><small>Резерв</small><strong>5</strong></span></button>
+            <button class="metric" data-status="draft"><span class="metric-icon gray" data-icon="edit"></span><span><small>Черновики</small><strong>7</strong></span></button>
+          </div>
+
+          <section class="catalog-panel">
+            <div class="catalog-toolbar">
+              <div class="quick-tabs" role="tablist">
+                <button class="quick-tab active" data-tab="all">Все</button>
+                <button class="quick-tab" data-tab="exclusive">Эксклюзивы <span>9</span></button>
+                <button class="quick-tab" data-tab="mine">Мои объекты <span>31</span></button>
+                <button class="quick-tab" data-tab="attention">На актуализацию <span>12</span></button>
+              </div>
+              <div class="view-switch" aria-label="Режим отображения">
+                <button class="active" data-view="grid" aria-label="Карточки"><span data-icon="grid"></span><span>Карточки</span></button>
+                <button data-view="list" aria-label="Таблица"><span data-icon="list"></span><span>Таблица</span></button>
+              </div>
+            </div>
+
+            <div class="filter-row">
+              <label class="filter-search"><span data-icon="search"></span><input id="catalogSearch" type="search" placeholder="Найти объект" /></label>
+              <select id="typeFilter" aria-label="Тип объекта"><option value="all">Все типы</option><option value="Квартира">Квартиры</option><option value="Дом">Дома</option><option value="Участок">Участки</option><option value="Коммерция">Коммерция</option><option value="Паркинг">Паркинги</option></select>
+              <select id="districtFilter" aria-label="Район"><option value="all">Все районы</option><option value="Приморский">Приморский</option><option value="Киевский">Киевский</option><option value="Хаджибейский">Хаджибейский</option><option value="Пересыпский">Пересыпский</option></select>
+              <select id="roomsFilter" aria-label="Количество комнат"><option value="all">Любые комнаты</option><option value="1">1 комната</option><option value="2">2 комнаты</option><option value="3">3 комнаты</option><option value="4">4+ комнаты</option></select>
+              <button class="filter-button"><span data-icon="sliders"></span>Все фильтры<i>2</i></button>
+              <button class="clear-button" id="clearFilters">Сбросить</button>
+            </div>
+
+            <div class="result-summary">
+              <label class="select-all"><input type="checkbox" id="selectAll" /><span></span><b id="resultCount">8 объектов</b></label>
+              <div><button class="sort-button">Сначала обновлённые <span data-icon="chevron"></span></button></div>
+            </div>
+
+            <div class="bulk-bar" id="bulkBar">
+              <strong><span id="selectedCount">0</span> выбрано</strong>
+              <span class="bulk-divider"></span>
+              <button data-action="agent"><span data-icon="user"></span>Назначить</button>
+              <button data-action="verify"><span data-icon="check"></span>Актуализировать</button>
+              <button data-action="publish"><span data-icon="send"></span>Опубликовать</button>
+              <button data-action="archive" class="danger"><span data-icon="archive"></span>В архив</button>
+              <button id="clearSelection" class="bulk-close"><span data-icon="close"></span></button>
+            </div>
+
+            <div id="propertyGrid" class="property-grid"></div>
+            <div id="emptyState" class="empty-state hidden"><span data-icon="search"></span><h3>Ничего не найдено</h3><p>Попробуйте изменить фильтры или поисковый запрос.</p><button id="emptyReset">Сбросить фильтры</button></div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+
+    <aside class="detail-drawer" id="detailDrawer" aria-hidden="true">
+      <div class="drawer-head"><div><span class="drawer-code" id="drawerCode">OD-204</span><span class="status-badge active">Активен</span></div><button class="icon-button" id="drawerClose" aria-label="Закрыть"><span data-icon="close"></span></button></div>
+      <div class="drawer-photo" id="drawerPhoto"><div class="photo-count"><span data-icon="image"></span> 12 фото</div></div>
+      <div class="drawer-content">
+        <div class="drawer-title"><div><p id="drawerType">Квартира</p><h2 id="drawerAddress">Генуэзская, 3Б</h2><span id="drawerLocation">Аркадия · Приморский район</span></div><strong id="drawerPrice">$128 000</strong></div>
+        <div class="key-facts" id="drawerFacts"></div>
+        <div class="drawer-section"><div class="section-title"><h3>Собственник</h3><button>Редактировать</button></div><div class="owner-card"><span class="avatar owner">ЕО</span><div><strong id="drawerOwner">Елена Островская</strong><a id="drawerPhone" href="#">+380 67 420 18 44</a></div><button><span data-icon="phone"></span>Позвонить</button></div></div>
+        <div class="drawer-section"><div class="section-title"><h3>Актуальность</h3><button id="verifyButton">Подтвердить</button></div><div class="verification"><span class="metric-icon green" data-icon="check"></span><div><strong>Подтверждено сегодня</strong><small>Анна Коваль · в 12:46</small></div></div></div>
+        <div class="drawer-section"><div class="section-title"><h3>Публикации</h3><button>Настроить</button></div><div class="publication-row"><span class="portal olx">olx</span><div><strong>Опубликовано</strong><small>Обновлено 18 сентября</small></div><span class="success-dot"></span></div><div class="publication-row"><span class="portal ria">RIA</span><div><strong>Ожидает обновления</strong><small>Изменилась цена объекта</small></div><button class="tiny-button">Обновить</button></div></div>
+      </div>
+      <div class="drawer-actions"><button class="secondary-button"><span data-icon="layers"></span>В подборку</button><button class="primary-button"><span data-icon="edit"></span>Редактировать</button></div>
+    </aside>
+
+    <div class="modal" id="addModal" aria-hidden="true">
+      <div class="modal-head"><div><p class="eyebrow">Новый объект</p><h2>Быстрое добавление</h2><span>Заполните минимум — детали можно добавить позже.</span></div><button class="icon-button modal-close" aria-label="Закрыть"><span data-icon="close"></span></button></div>
+      <form id="addForm">
+        <div class="form-grid">
+          <label class="wide">Тип объекта<select required><option>Квартира</option><option>Дом</option><option>Участок</option><option>Коммерция</option><option>Паркинг</option></select></label>
+          <label>Имя собственника<input required placeholder="Например, Евгений" /></label>
+          <label>Телефон<input required placeholder="+380 __ ___ __ __" /></label>
+          <label class="wide">Адрес<input required placeholder="Улица, дом, квартира" /></label>
+          <label>Район<select required><option value="">Выберите район</option><option>Приморский</option><option>Киевский</option><option>Хаджибейский</option><option>Пересыпский</option></select></label>
+          <label>Комнаты<input required type="number" min="1" placeholder="2" /></label>
+          <label>Площадь, м²<input required type="number" min="1" placeholder="68" /></label>
+          <label>Этаж<input required type="number" min="1" placeholder="5" /></label>
+          <label>Этажность<input required type="number" min="1" placeholder="12" /></label>
+          <label>Цена<input required type="number" min="1" placeholder="84000" /></label>
+          <label>Валюта<select><option>USD</option><option>UAH</option></select></label>
+        </div>
+        <div class="form-note"><span data-icon="info"></span>Ответственным риелтором автоматически станет Анна Коваль.</div>
+        <div class="modal-actions"><button type="button" class="secondary-button modal-close">Отмена</button><button type="button" class="secondary-button" id="saveDraft">Сохранить черновик</button><button type="submit" class="primary-button">Создать объект</button></div>
+      </form>
+    </div>
+
+    <div class="modal import-modal" id="importModal" aria-hidden="true">
+      <div class="modal-head"><div><p class="eyebrow">Импорт данных</p><h2>Загрузить Excel или CSV</h2><span>Сначала покажем строки и предложим сопоставить колонки.</span></div><button class="icon-button modal-close" aria-label="Закрыть"><span data-icon="close"></span></button></div>
+      <div class="dropzone"><span class="drop-icon" data-icon="upload"></span><strong>Перетащите таблицу сюда</strong><p>XLSX, XLS или CSV · до 25 МБ</p><button class="secondary-button">Выбрать файл</button></div>
+      <div class="recent-import"><span data-icon="file"></span><div><strong>objects_september.xlsx</strong><small>24 объекта · импортирован 16 сентября</small></div><span class="status-badge active">Готово</span></div>
+    </div>
+
+    <div class="toast" id="toast"><span data-icon="check"></span><div><strong>Готово</strong><p id="toastMessage">Изменения сохранены</p></div></div>
+    <script src="./app.js"></script>
+  </body>
+</html>
