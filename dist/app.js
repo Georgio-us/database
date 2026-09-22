@@ -46,7 +46,7 @@ const properties = [
   { id:'OD-161', type:'Паркинг', address:'Каманина, 16А', district:'Приморский', zone:'Аркадия', rooms:0, area:18, floor:'−1 уровень', price:'$24 000', owner:'Роман Ткаченко', phone:'+380 73 550 91 12', agent:'Игорь Мельник', initials:'ИМ', status:'active', statusText:'Актуально 3 дня назад', exclusive:false, published:false, image:'https://images.pexels.com/photos/7166945/pexels-photo-7166945.jpeg?auto=compress&fit=crop&w=900&h=620' }
 ];
 
-const state = { view: 'grid', status: 'all', tab: 'all', search: '', type: 'all', district: 'all', rooms: 'all', selected: new Set(), activePropertyId: null };
+const state = { view: 'grid', status: 'all', tab: 'all', search: '', type: 'all', district: 'all', rooms: 'all', selected: new Set(), activePropertyId: null, newPhotos: [], newDocuments: [] };
 const grid = document.getElementById('propertyGrid');
 const emptyState = document.getElementById('emptyState');
 const bulkBar = document.getElementById('bulkBar');
@@ -64,8 +64,19 @@ function filteredProperties() {
 
 function facts(property) {
   const roomLabel = property.rooms ? `${property.rooms} комн.` : property.type === 'Участок' ? 'Участок' : property.type === 'Паркинг' ? 'Паркинг' : 'Свободное';
-  const areaLabel = property.type === 'Участок' ? `${property.area} соток` : `${property.area} м²`;
+  const areaLabel = property.area ? (property.type === 'Участок' ? `${property.area} соток` : `${property.area} м²`) : 'Площадь не указана';
   return [roomLabel, areaLabel, property.floor];
+}
+
+function pricePerUnit(property) {
+  const amount = Number(String(property.price).replace(/\D/g,''));
+  if (!amount || !property.area || property.type === 'Участок') return '—';
+  const symbol = property.currency === 'UAH' || String(property.price).startsWith('₴') ? '₴' : '$';
+  return symbol + Math.round(amount / property.area).toLocaleString('ru-RU');
+}
+
+function locationLabel(property) {
+  return [property.zone, property.district ? `${property.district} район` : ''].filter(Boolean).join(' · ');
 }
 
 function cardTemplate(property) {
@@ -78,7 +89,7 @@ function cardTemplate(property) {
     </div>
     <div class="card-body">
       <div class="card-topline"><div><p class="property-type">${property.type} · ${property.id}</p><h3>${property.address}</h3></div><strong class="property-price">${property.price}</strong></div>
-      <p class="location">${property.zone} · ${property.district} район</p>
+      <p class="location">${locationLabel(property)}</p>
       <div class="facts"><span>${fact[0]}</span><i></i><span>${fact[1]}</span><i></i><span>${fact[2]}</span></div>
       <div class="card-meta"><span class="agent-avatar">${property.initials}</span><div><strong>${property.agent}</strong><small>${property.statusText}</small></div><span class="status-dot ${property.status}"></span></div>
     </div>
@@ -205,15 +216,20 @@ function openDrawer(id) {
   state.activePropertyId = id;
   const fact = facts(property);
   document.getElementById('drawerCode').textContent = property.id;
+  const statusLabels = { active:'Активен', reserved:'Резерв', draft:'Черновик', attention:'Проверить' };
+  const drawerStatusBadge = document.getElementById('drawerStatusBadge');
+  drawerStatusBadge.textContent = statusLabels[property.status] || 'Активен';
+  drawerStatusBadge.className = `status-badge ${property.status || 'active'}`;
   document.getElementById('drawerType').textContent = property.type;
   document.getElementById('drawerAddress').textContent = property.address;
-  document.getElementById('drawerLocation').textContent = `${property.zone} · ${property.district} район`;
+  document.getElementById('drawerLocation').textContent = locationLabel(property);
   document.getElementById('drawerPrice').textContent = property.price;
   document.getElementById('drawerOwner').textContent = property.owner;
-  document.getElementById('drawerOwnerInitials').textContent = property.owner.split(' ').map((part) => part[0]).join('').slice(0,2);
+  document.getElementById('drawerOwnerInitials').textContent = property.owner.split(' ').map((part) => part[0]).join('').slice(0,2).toUpperCase();
   document.getElementById('drawerPhone').textContent = property.phone;
   document.getElementById('drawerPhone').href = `tel:${property.phone.replace(/\s/g,'')}`;
   document.getElementById('drawerPhoto').style.backgroundImage = `url('${property.image}')`;
+  document.getElementById('drawerPhotoCount').textContent = property.photoCount === 0 ? 'Нет фото' : `${property.photoCount || 12} фото`;
   document.getElementById('drawerAgent').textContent = property.agent;
   document.getElementById('drawerAgentInitials').textContent = property.initials;
   document.getElementById('drawerComment').textContent = property.comment || 'Собственник готов к показам после 17:00. Ключи у ответственного риелтора.';
@@ -231,7 +247,7 @@ function openDrawer(id) {
   document.getElementById('drawerHistory').innerHTML = history.map((item) => `<div class="history-item"><span class="history-icon">${icon(item.icon)}</span><div><strong>${item.title}</strong><small>${item.meta}</small></div></div>`).join('');
   document.querySelectorAll('[data-drawer-tab]').forEach((button) => button.classList.toggle('active', button.dataset.drawerTab === 'overview'));
   document.querySelectorAll('[data-drawer-panel]').forEach((panel) => panel.classList.toggle('active', panel.dataset.drawerPanel === 'overview'));
-  document.getElementById('drawerFacts').innerHTML = `<div class="key-fact"><small>Комнаты</small><strong>${property.rooms || '—'}</strong></div><div class="key-fact"><small>Площадь</small><strong>${property.type === 'Участок' ? property.area + ' сот.' : property.area + ' м²'}</strong></div><div class="key-fact"><small>Этаж</small><strong>${property.floor}</strong></div><div class="key-fact"><small>Цена за м²</small><strong>${property.type === 'Участок' ? '—' : '$' + Math.round(Number(property.price.replace(/\D/g,'')) / property.area).toLocaleString('ru-RU')}</strong></div>`;
+  document.getElementById('drawerFacts').innerHTML = `<div class="key-fact"><small>Комнаты</small><strong>${property.rooms || '—'}</strong></div><div class="key-fact"><small>Площадь</small><strong>${property.area ? (property.type === 'Участок' ? property.area + ' сот.' : property.area + ' м²') : '—'}</strong></div><div class="key-fact"><small>Этаж</small><strong>${property.floor}</strong></div><div class="key-fact"><small>Цена за м²</small><strong>${pricePerUnit(property)}</strong></div>`;
   drawer.classList.add('open'); drawer.setAttribute('aria-hidden','false'); showOverlay();
 }
 
@@ -239,11 +255,206 @@ function openModal(modal) { modal.classList.add('open'); modal.setAttribute('ari
 document.getElementById('drawerClose').addEventListener('click', closeLayers);
 overlay.addEventListener('click', closeLayers);
 document.querySelectorAll('.modal-close').forEach((button) => button.addEventListener('click', closeLayers));
-document.getElementById('addButton').addEventListener('click', () => openModal(addModal));
-document.getElementById('mobileAdd').addEventListener('click', () => openModal(addModal));
+
+const formStepButtons = [...document.querySelectorAll('[data-form-step]')];
+const formPanels = [...document.querySelectorAll('[data-form-panel]')];
+const typeFieldGroups = [...document.querySelectorAll('[data-property-fields]')];
+const propertyTypeInput = document.getElementById('propertyType');
+const detailsHint = document.getElementById('detailsHint');
+const typeHints = {
+  'Квартира':'Площади, этаж, состояние и параметры квартиры.',
+  'Дом':'Площадь дома, комнаты, участок и коммуникации.',
+  'Участок':'Площадь и целевое назначение участка.',
+  'Коммерция':'Площадь и назначение помещения.',
+  'Паркинг':'Основные параметры парковочного места.'
+};
+
+function setFormStep(step) {
+  formStepButtons.forEach((button) => button.classList.toggle('active', button.dataset.formStep === step));
+  formPanels.forEach((panel) => panel.classList.toggle('active', panel.dataset.formPanel === step));
+  document.querySelector('.object-form-content').scrollTop = 0;
+}
+
+function activeRequiredFields() {
+  const base = [...document.querySelectorAll('#addForm [data-required-field]')];
+  const activeGroup = document.querySelector(`[data-property-fields="${propertyTypeInput.value}"]`);
+  return [...base, ...(activeGroup ? [...activeGroup.querySelectorAll('[data-active-required]')] : [])];
+}
+
+function fieldHasValue(field) {
+  return field.type === 'checkbox' ? field.checked : String(field.value || '').trim() !== '';
+}
+
+function updateFormReadiness() {
+  const fields = activeRequiredFields();
+  const completed = fields.filter(fieldHasValue).length;
+  const percent = fields.length ? Math.round(completed / fields.length * 100) : 0;
+  document.getElementById('formReadinessPercent').textContent = `${percent}%`;
+  document.getElementById('formReadinessBar').style.width = `${percent}%`;
+  document.getElementById('formReadinessText').textContent = percent === 100 ? 'Можно создавать активный объект' : `Осталось обязательных полей: ${fields.length - completed}`;
+  document.getElementById('formValidationMessage').textContent = '';
+}
+
+function updatePropertyType() {
+  const type = propertyTypeInput.value;
+  typeFieldGroups.forEach((group) => group.classList.toggle('active', group.dataset.propertyFields === type));
+  detailsHint.textContent = typeHints[type];
+  document.getElementById('activatePropertyButton').textContent = document.getElementById('propertyInitialStatus').value === 'reserved' ? 'Создать в резерве' : 'Создать активный';
+  updateFormReadiness();
+}
+
+document.getElementById('propertyInitialStatus').addEventListener('change', (event) => {
+  document.getElementById('activatePropertyButton').textContent = event.target.value === 'reserved' ? 'Создать в резерве' : 'Создать активный';
+});
+
+function resetCreateForm() {
+  document.getElementById('addForm').reset();
+  state.newPhotos = [];
+  state.newDocuments = [];
+  document.getElementById('exclusiveDateField').classList.add('hidden-field');
+  document.querySelectorAll('#addForm .field-error').forEach((label) => label.classList.remove('field-error'));
+  renderPhotoPreview();
+  renderDocumentPreview();
+  updatePropertyType();
+  setFormStep('main');
+}
+
+function openCreateForm() {
+  resetCreateForm();
+  openModal(addModal);
+}
+
+formStepButtons.forEach((button) => button.addEventListener('click', () => setFormStep(button.dataset.formStep)));
+propertyTypeInput.addEventListener('change', updatePropertyType);
+document.getElementById('propertyExclusive').addEventListener('change', (event) => {
+  document.getElementById('exclusiveDateField').classList.toggle('hidden-field', !event.target.checked);
+});
+document.querySelectorAll('#addForm input, #addForm select, #addForm textarea').forEach((field) => {
+  field.addEventListener('input', () => { field.closest('label')?.classList.remove('field-error'); updateFormReadiness(); });
+  field.addEventListener('change', () => { field.closest('label')?.classList.remove('field-error'); updateFormReadiness(); });
+});
+
+function renderPhotoPreview() {
+  const container = document.getElementById('photoPreview');
+  container.innerHTML = `<button type="button" class="media-add" id="photoDropButton"><span>${icon('image')}</span><strong>Добавить фото</strong><small>JPG или PNG</small></button>` + state.newPhotos.map((photo, index) => `<div class="media-thumb" style="background-image:url('${photo.url}')"><button type="button" data-remove-photo="${index}" aria-label="Удалить фото">${icon('close')}</button></div>`).join('');
+  container.querySelector('#photoDropButton').addEventListener('click', () => document.getElementById('photoInput').click());
+  container.querySelectorAll('[data-remove-photo]').forEach((button) => button.addEventListener('click', () => {
+    const index = Number(button.dataset.removePhoto);
+    URL.revokeObjectURL(state.newPhotos[index].url);
+    state.newPhotos.splice(index, 1);
+    renderPhotoPreview();
+  }));
+}
+
+function renderDocumentPreview() {
+  const container = document.getElementById('documentPreview');
+  if (!state.newDocuments.length) {
+    container.innerHTML = `<div class="document-placeholder">${icon('file')}<p>Можно добавить договор, техпаспорт или другой файл.</p></div>`;
+    return;
+  }
+  container.innerHTML = state.newDocuments.map((file, index) => `<div class="uploaded-document">${icon('file')}<div><strong>${file.name}</strong><small>${Math.max(1, Math.round(file.size / 1024))} КБ · только внутри агентства</small></div><button type="button" data-remove-document="${index}" aria-label="Удалить документ">${icon('close')}</button></div>`).join('');
+  container.querySelectorAll('[data-remove-document]').forEach((button) => button.addEventListener('click', () => {
+    state.newDocuments.splice(Number(button.dataset.removeDocument), 1);
+    renderDocumentPreview();
+  }));
+}
+
+document.getElementById('choosePhotosButton').addEventListener('click', () => document.getElementById('photoInput').click());
+document.getElementById('photoInput').addEventListener('change', (event) => {
+  [...event.target.files].slice(0, 12 - state.newPhotos.length).forEach((file) => state.newPhotos.push({ name:file.name, url:URL.createObjectURL(file) }));
+  event.target.value = '';
+  renderPhotoPreview();
+});
+document.getElementById('chooseDocumentsButton').addEventListener('click', () => document.getElementById('documentInput').click());
+document.getElementById('documentInput').addEventListener('change', (event) => {
+  state.newDocuments.push(...[...event.target.files].map((file) => ({ name:file.name, size:file.size })));
+  event.target.value = '';
+  renderDocumentPreview();
+});
+
+function validateActiveProperty() {
+  const missing = activeRequiredFields().filter((field) => !fieldHasValue(field));
+  document.querySelectorAll('#addForm .field-error').forEach((label) => label.classList.remove('field-error'));
+  missing.forEach((field) => field.closest('label')?.classList.add('field-error'));
+  if (!missing.length) return true;
+  const firstPanel = missing[0].closest('[data-form-panel]');
+  if (firstPanel) setFormStep(firstPanel.dataset.formPanel);
+  document.getElementById('formValidationMessage').textContent = `Не заполнено обязательных полей: ${missing.length}`;
+  missing[0].focus();
+  return false;
+}
+
+function validateDraftProperty() {
+  const fields = ['propertyAddress', 'ownerName', 'ownerPhone'].map((id) => document.getElementById(id));
+  const missing = fields.filter((field) => !fieldHasValue(field));
+  document.querySelectorAll('#addForm .field-error').forEach((label) => label.classList.remove('field-error'));
+  missing.forEach((field) => field.closest('label')?.classList.add('field-error'));
+  if (!missing.length) return true;
+  const firstPanel = missing[0].closest('[data-form-panel]');
+  if (firstPanel) setFormStep(firstPanel.dataset.formPanel);
+  document.getElementById('formValidationMessage').textContent = 'Для черновика нужны адрес, имя и телефон';
+  missing[0].focus();
+  return false;
+}
+
+function value(id) { return document.getElementById(id).value.trim(); }
+function numberValue(id) { return Number(document.getElementById(id).value) || 0; }
+function agentInitials(name) { return name.split(' ').map((part) => part[0]).join('').slice(0,2).toUpperCase(); }
+
+function typeSpecificValues(type) {
+  if (type === 'Квартира') return { rooms:numberValue('apartmentRooms'), area:numberValue('apartmentArea'), floor:`${value('apartmentFloor') || '—'} / ${value('apartmentFloors') || '—'}` };
+  if (type === 'Дом') return { rooms:numberValue('houseRooms'), area:numberValue('houseArea'), floor:value('houseFloors') ? `${value('houseFloors')} этажа` : 'Этажность не указана' };
+  if (type === 'Участок') return { rooms:0, area:numberValue('landArea'), floor:`${numberValue('landArea')} соток` };
+  if (type === 'Коммерция') return { rooms:0, area:numberValue('commercialArea'), floor:value('commercialFloor') ? `${value('commercialFloor')} этаж` : 'Этаж не указан' };
+  return { rooms:0, area:numberValue('parkingArea') || 18, floor:value('parkingLevel') ? `${value('parkingLevel')} уровень` : 'Уровень не указан' };
+}
+
+function createProperty(status) {
+  const type = propertyTypeInput.value;
+  const specific = typeSpecificValues(type);
+  const priceNumber = numberValue('propertyPrice');
+  const currency = document.getElementById('propertyCurrency').value;
+  const price = priceNumber ? (currency === 'UAH' ? `₴${priceNumber.toLocaleString('ru-RU')}` : `$${priceNumber.toLocaleString('ru-RU')}`) : 'Цена не указана';
+  const agent = document.getElementById('propertyAgent').value;
+  const idNumber = Math.max(...properties.map((item) => Number(item.id.replace(/\D/g,'')))) + 1;
+  const property = {
+    id:`OD-${idNumber}`,
+    type,
+    address:value('propertyAddress') || 'Адрес не указан',
+    district:value('propertyDistrict'),
+    zone:value('propertyZone'),
+    rooms:specific.rooms,
+    area:specific.area,
+    floor:specific.floor,
+    price,
+    currency,
+    owner:value('ownerName') || 'Контакт не указан',
+    phone:value('ownerPhone') || 'Телефон не указан',
+    agent,
+    initials:agentInitials(agent),
+    status,
+    statusText:status === 'draft' ? 'Черновик · нужно заполнить' : status === 'reserved' ? 'Резерв создан сегодня' : 'Создан сегодня',
+    exclusive:document.getElementById('propertyExclusive').checked,
+    published:false,
+    image:state.newPhotos[0]?.url || 'https://images.pexels.com/photos/6970066/pexels-photo-6970066.jpeg?auto=compress&fit=crop&w=900&h=620',
+    photoCount:state.newPhotos.length,
+    comment:value('propertyComment') || value('ownerComment'),
+    documents:state.newDocuments.map((file) => file.name),
+    history:[{ icon:'plus', title:status === 'draft' ? 'Создан черновик объекта' : 'Объект создан и активирован', meta:'Анна Коваль · только что' }]
+  };
+  properties.unshift(property);
+  closeLayers();
+  state.status = 'all'; state.tab = 'all'; state.search = ''; state.type = 'all'; state.district = 'all'; state.rooms = 'all';
+  resetFilters();
+  openDrawer(property.id);
+  showToast(status === 'draft' ? `${property.id} сохранён как черновик` : `${property.id} создан и добавлен в активную базу`);
+}
+
+document.getElementById('addButton').addEventListener('click', openCreateForm);
+document.getElementById('mobileAdd').addEventListener('click', openCreateForm);
 document.getElementById('importButton').addEventListener('click', () => openModal(importModal));
-document.getElementById('addForm').addEventListener('submit', (event) => { event.preventDefault(); closeLayers(); showToast('Объект создан и назначен Анне Коваль'); });
-document.getElementById('saveDraft').addEventListener('click', () => { closeLayers(); showToast('Черновик сохранён'); });
+document.getElementById('addForm').addEventListener('submit', (event) => { event.preventDefault(); if (validateActiveProperty()) createProperty(document.getElementById('propertyInitialStatus').value); });
+document.getElementById('saveDraft').addEventListener('click', () => { if (validateDraftProperty()) createProperty('draft'); });
 document.querySelectorAll('[data-drawer-tab]').forEach((button) => button.addEventListener('click', () => {
   document.querySelectorAll('[data-drawer-tab]').forEach((item) => item.classList.toggle('active', item === button));
   document.querySelectorAll('[data-drawer-panel]').forEach((panel) => panel.classList.toggle('active', panel.dataset.drawerPanel === button.dataset.drawerTab));

@@ -125,8 +125,8 @@
     <div class="overlay" id="overlay"></div>
 
     <aside class="detail-drawer" id="detailDrawer" aria-hidden="true">
-      <div class="drawer-head"><div><span class="drawer-code" id="drawerCode">OD-204</span><span class="status-badge active">Активен</span></div><button class="icon-button" id="drawerClose" aria-label="Закрыть"><span data-icon="close"></span></button></div>
-      <div class="drawer-photo" id="drawerPhoto"><div class="photo-count"><span data-icon="image"></span> 12 фото</div></div>
+      <div class="drawer-head"><div><span class="drawer-code" id="drawerCode">OD-204</span><span class="status-badge active" id="drawerStatusBadge">Активен</span></div><button class="icon-button" id="drawerClose" aria-label="Закрыть"><span data-icon="close"></span></button></div>
+      <div class="drawer-photo" id="drawerPhoto"><div class="photo-count"><span data-icon="image"></span> <span id="drawerPhotoCount">12 фото</span></div></div>
       <div class="drawer-content">
         <div class="drawer-title"><div><p id="drawerType">Квартира</p><h2 id="drawerAddress">Генуэзская, 3Б</h2><span id="drawerLocation">Аркадия · Приморский район</span></div><strong id="drawerPrice">$128 000</strong></div>
         <div class="key-facts" id="drawerFacts"></div>
@@ -153,24 +153,139 @@
       <div class="drawer-actions"><button class="secondary-button" id="addToSelectionButton"><span data-icon="layers"></span>В подборку</button><button class="primary-button" id="editPropertyButton"><span data-icon="edit"></span>Редактировать</button></div>
     </aside>
 
-    <div class="modal" id="addModal" aria-hidden="true">
-      <div class="modal-head"><div><p class="eyebrow">Новый объект</p><h2>Быстрое добавление</h2><span>Заполните минимум — детали можно добавить позже.</span></div><button class="icon-button modal-close" aria-label="Закрыть"><span data-icon="close"></span></button></div>
-      <form id="addForm">
-        <div class="form-grid">
-          <label class="wide">Тип объекта<select required><option>Квартира</option><option>Дом</option><option>Участок</option><option>Коммерция</option><option>Паркинг</option></select></label>
-          <label>Имя собственника<input required placeholder="Например, Евгений" /></label>
-          <label>Телефон<input required placeholder="+380 __ ___ __ __" /></label>
-          <label class="wide">Адрес<input required placeholder="Улица, дом, квартира" /></label>
-          <label>Район<select required><option value="">Выберите район</option><option>Приморский</option><option>Киевский</option><option>Хаджибейский</option><option>Пересыпский</option></select></label>
-          <label>Комнаты<input required type="number" min="1" placeholder="2" /></label>
-          <label>Площадь, м²<input required type="number" min="1" placeholder="68" /></label>
-          <label>Этаж<input required type="number" min="1" placeholder="5" /></label>
-          <label>Этажность<input required type="number" min="1" placeholder="12" /></label>
-          <label>Цена<input required type="number" min="1" placeholder="84000" /></label>
-          <label>Валюта<select><option>USD</option><option>UAH</option></select></label>
+    <div class="modal object-form-modal" id="addModal" aria-hidden="true">
+      <div class="object-form-head">
+        <div><p class="eyebrow">Новый объект</p><div class="object-form-title"><h2>Карточка объекта</h2><span class="draft-chip">Черновик</span></div><span>Обязательные поля отмечены звёздочкой.</span></div>
+        <button class="icon-button modal-close" aria-label="Закрыть"><span data-icon="close"></span></button>
+      </div>
+      <form id="addForm" novalidate>
+        <div class="object-form-layout">
+          <nav class="object-form-nav" aria-label="Разделы формы">
+            <button type="button" class="active" data-form-step="main"><span>01</span><div><strong>Основное</strong><small>Тип, адрес и цена</small></div></button>
+            <button type="button" data-form-step="contact"><span>02</span><div><strong>Контакт</strong><small>Собственник и риелтор</small></div></button>
+            <button type="button" data-form-step="details"><span>03</span><div><strong>Характеристики</strong><small>Параметры объекта</small></div></button>
+            <button type="button" data-form-step="media"><span>04</span><div><strong>Медиа и документы</strong><small>Фото, файлы, заметки</small></div></button>
+            <div class="readiness-card">
+              <div><strong>Готовность</strong><b id="formReadinessPercent">0%</b></div>
+              <span><i id="formReadinessBar"></i></span>
+              <small id="formReadinessText">Заполните основные данные</small>
+            </div>
+          </nav>
+
+          <div class="object-form-content">
+            <section class="form-step active" data-form-panel="main">
+              <div class="form-section-head"><div><h3>Основные данные</h3><p>То, по чему объект находят в базе.</p></div></div>
+              <div class="form-grid form-grid-3">
+                <label class="wide">Тип недвижимости *<select id="propertyType"><option>Квартира</option><option>Дом</option><option>Участок</option><option>Коммерция</option><option>Паркинг</option></select></label>
+                <label class="wide">Адрес *<input id="propertyAddress" data-required-field placeholder="Например, Генуэзская, 3Б" /></label>
+                <label>Номер квартиры<input id="propertyUnit" placeholder="48" /></label>
+                <label>Район *<select id="propertyDistrict" data-required-field><option value="">Выберите район</option><option>Приморский</option><option>Киевский</option><option>Хаджибейский</option><option>Пересыпский</option></select></label>
+                <label>Микрорайон<input id="propertyZone" placeholder="Аркадия" /></label>
+                <label>Цена собственника *<input id="propertyPrice" data-required-field type="number" min="1" placeholder="84000" /></label>
+                <label>Валюта<select id="propertyCurrency"><option value="USD">USD</option><option value="UAH">UAH</option></select></label>
+                <label>Статус<select id="propertyInitialStatus"><option value="active">Активный</option><option value="reserved">Резерв</option></select></label>
+              </div>
+            </section>
+
+            <section class="form-step" data-form-panel="contact">
+              <div class="form-section-head"><div><h3>Контакт и ответственность</h3><p>Видно только сотрудникам агентства.</p></div></div>
+              <div class="source-switch" aria-label="Тип контакта">
+                <label><input type="radio" name="contactSource" value="owner" checked /><span>Собственник</span></label>
+                <label><input type="radio" name="contactSource" value="partner" /><span>Партнёр</span></label>
+              </div>
+              <div class="form-grid">
+                <label>Имя контакта *<input id="ownerName" data-required-field placeholder="Евгений" /></label>
+                <label>Основной телефон *<input id="ownerPhone" data-required-field placeholder="+380 67 000 00 00" /></label>
+                <label>Дополнительный телефон<input id="ownerAltPhone" placeholder="+380 93 000 00 00" /></label>
+                <label>Мессенджер<select id="ownerMessenger"><option value="">Не указан</option><option>Telegram</option><option>Viber</option><option>WhatsApp</option></select></label>
+                <label class="wide">Комментарий по контакту<textarea id="ownerComment" rows="3" placeholder="Когда звонить, как проводить показы"></textarea></label>
+                <label>Ответственный риелтор<select id="propertyAgent"><option value="Анна Коваль">Анна Коваль</option><option value="Игорь Мельник">Игорь Мельник</option><option value="Николай Савчук">Николай Савчук</option></select></label>
+                <label class="checkbox-field"><input id="propertyExclusive" type="checkbox" /><span>Эксклюзивный объект</span></label>
+                <label id="exclusiveDateField" class="hidden-field">Дата начала эксклюзива<input id="exclusiveDate" type="date" /></label>
+              </div>
+            </section>
+
+            <section class="form-step" data-form-panel="details">
+              <div class="form-section-head"><div><h3>Характеристики</h3><p id="detailsHint">Параметры квартиры.</p></div></div>
+
+              <div class="type-fields active" data-property-fields="Квартира">
+                <div class="form-grid form-grid-3">
+                  <label>Комнаты *<input id="apartmentRooms" data-active-required type="number" min="1" placeholder="2" /></label>
+                  <label>Общая площадь, м² *<input id="apartmentArea" data-active-required type="number" min="1" placeholder="68" /></label>
+                  <label>Этаж *<input id="apartmentFloor" data-active-required type="number" min="1" placeholder="8" /></label>
+                  <label>Этажность дома *<input id="apartmentFloors" data-active-required type="number" min="1" placeholder="24" /></label>
+                  <label>Жилая площадь, м²<input id="apartmentLivingArea" type="number" min="1" /></label>
+                  <label>Площадь кухни, м²<input id="apartmentKitchenArea" type="number" min="1" /></label>
+                  <label>Тип дома<select id="apartmentBuildingType"><option value="">Не указан</option><option>Новый дом</option><option>Сталинка</option><option>Хрущёвка</option><option>Чешка</option><option>Старый фонд</option></select></label>
+                  <label>Состояние<select id="apartmentCondition"><option value="">Не указано</option><option>После ремонта</option><option>Жилое</option><option>Под ремонт</option><option>От строителей</option></select></label>
+                  <label>Санузел<select id="apartmentBathroom"><option value="">Не указан</option><option>Совмещённый</option><option>Раздельный</option><option>Два и более</option></select></label>
+                  <label class="checkbox-field"><input id="apartmentBalcony" type="checkbox" /><span>Балкон или лоджия</span></label>
+                </div>
+              </div>
+
+              <div class="type-fields" data-property-fields="Дом">
+                <div class="form-grid form-grid-3">
+                  <label>Комнаты *<input id="houseRooms" data-active-required type="number" min="1" /></label>
+                  <label>Площадь дома, м² *<input id="houseArea" data-active-required type="number" min="1" /></label>
+                  <label>Этажность<input id="houseFloors" type="number" min="1" /></label>
+                  <label>Участок, соток<input id="houseLotArea" type="number" min="0" step="0.1" /></label>
+                  <label>Материал стен<select id="houseMaterial"><option value="">Не указан</option><option>Кирпич</option><option>Газоблок</option><option>Ракушечник</option><option>Монолит</option></select></label>
+                  <label>Состояние<select id="houseCondition"><option value="">Не указано</option><option>После ремонта</option><option>Жилое</option><option>Под ремонт</option></select></label>
+                  <label class="checkbox-field"><input id="houseUtilities" type="checkbox" /><span>Коммуникации заведены</span></label>
+                </div>
+              </div>
+
+              <div class="type-fields" data-property-fields="Участок">
+                <div class="form-grid form-grid-3">
+                  <label>Площадь, соток *<input id="landArea" data-active-required type="number" min="0" step="0.1" /></label>
+                  <label class="wide">Целевое назначение *<select id="landPurpose" data-active-required><option value="">Выберите назначение</option><option>Под строительство жилого дома</option><option>Сельскохозяйственное</option><option>Коммерческое</option><option>Другое</option></select></label>
+                  <label>Фасад, м<input id="landFrontage" type="number" min="0" /></label>
+                  <label class="checkbox-field"><input id="landUtilities" type="checkbox" /><span>Коммуникации по границе</span></label>
+                </div>
+              </div>
+
+              <div class="type-fields" data-property-fields="Коммерция">
+                <div class="form-grid form-grid-3">
+                  <label>Площадь, м² *<input id="commercialArea" data-active-required type="number" min="1" /></label>
+                  <label>Этаж<input id="commercialFloor" type="number" min="0" /></label>
+                  <label>Назначение<select id="commercialPurpose"><option value="">Свободное</option><option>Офис</option><option>Магазин</option><option>Ресторан</option><option>Склад</option></select></label>
+                  <label class="checkbox-field"><input id="commercialEntrance" type="checkbox" /><span>Отдельный вход</span></label>
+                </div>
+              </div>
+
+              <div class="type-fields" data-property-fields="Паркинг">
+                <div class="form-grid form-grid-3">
+                  <label>Тип места<select id="parkingType"><option>Место в паркинге</option><option>Наземное место</option><option>Гаражный бокс</option></select></label>
+                  <label>Площадь, м²<input id="parkingArea" type="number" min="1" value="18" /></label>
+                  <label>Уровень<input id="parkingLevel" placeholder="−1" /></label>
+                </div>
+              </div>
+            </section>
+
+            <section class="form-step" data-form-panel="media">
+              <div class="form-section-head"><div><h3>Медиа и документы</h3><p>Файлы остаются внутри прототипа текущей сессии.</p></div></div>
+              <div class="media-block">
+                <div class="media-block-title"><div><h4>Фотографии</h4><span>Первая станет обложкой</span></div><button type="button" class="secondary-button" id="choosePhotosButton"><span data-icon="plus"></span>Добавить</button></div>
+                <input id="photoInput" type="file" accept="image/*" multiple hidden />
+                <div class="media-grid" id="photoPreview"><button type="button" class="media-add" id="photoDropButton"><span data-icon="image"></span><strong>Добавить фото</strong><small>JPG или PNG</small></button></div>
+              </div>
+              <div class="media-block">
+                <div class="media-block-title"><div><h4>Документы</h4><span>Наружу не публикуются</span></div><button type="button" class="secondary-button" id="chooseDocumentsButton"><span data-icon="plus"></span>Добавить</button></div>
+                <input id="documentInput" type="file" multiple hidden />
+                <div class="document-upload-list" id="documentPreview"><div class="document-placeholder"><span data-icon="file"></span><p>Можно добавить договор, техпаспорт или другой файл.</p></div></div>
+              </div>
+              <div class="form-grid">
+                <label class="wide">Внутренний комментарий<textarea id="propertyComment" rows="4" placeholder="Особенности объекта, показы, договорённости"></textarea></label>
+              </div>
+            </section>
+          </div>
         </div>
-        <div class="form-note"><span data-icon="info"></span>Ответственным риелтором автоматически станет Анна Коваль.</div>
-        <div class="modal-actions"><button type="button" class="secondary-button modal-close">Отмена</button><button type="button" class="secondary-button" id="saveDraft">Сохранить черновик</button><button type="submit" class="primary-button">Создать объект</button></div>
+        <div class="object-form-footer">
+          <button type="button" class="secondary-button modal-close">Отмена</button>
+          <span id="formValidationMessage"></span>
+          <button type="button" class="secondary-button" id="saveDraft">Сохранить черновик</button>
+          <button type="submit" class="primary-button" id="activatePropertyButton">Создать активный</button>
+        </div>
       </form>
     </div>
 
