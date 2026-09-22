@@ -171,6 +171,7 @@
               <span class="bulk-divider"></span>
               <button data-action="agent"><span data-icon="user"></span>Назначить</button>
               <button data-action="verify"><span data-icon="check"></span>Актуализировать</button>
+              <button data-action="selection"><span data-icon="layers"></span>В подборку</button>
               <button data-action="publish"><span data-icon="send"></span>Опубликовать</button>
               <button data-action="archive" class="danger"><span data-icon="archive"></span>В архив</button>
               <button id="clearSelection" class="bulk-close"><span data-icon="close"></span></button>
@@ -178,6 +179,26 @@
 
             <div id="propertyGrid" class="property-grid"></div>
             <div id="emptyState" class="empty-state hidden"><span data-icon="search"></span><h3>Ничего не найдено</h3><p>Попробуйте изменить фильтры или поисковый запрос.</p><button id="emptyReset">Сбросить фильтры</button></div>
+          </section>
+        </section>
+
+        <section class="content app-view" id="selectionsView" data-app-view="Подборки" hidden>
+          <div class="page-heading selections-heading">
+            <div><p class="eyebrow">Работа с клиентами</p><div class="title-row"><h1>Подборки</h1><span class="count-badge" id="selectionCountBadge">8</span></div><p>Объекты, собранные для конкретных клиентов и отправленные одной ссылкой.</p></div>
+            <button class="primary-button" id="newSelectionButton"><span data-icon="plus"></span>Новая подборка</button>
+          </div>
+          <div class="selection-metrics">
+            <div><small>Активные ссылки</small><strong>6</strong><span>2 открывали сегодня</span></div>
+            <div><small>Просмотрено клиентами</small><strong>3</strong><span>50% отправленных</span></div>
+            <div><small>Объектов в подборках</small><strong>23</strong><span>без дублей</span></div>
+          </div>
+          <section class="selection-panel">
+            <div class="selection-toolbar">
+              <div class="quick-tabs" role="tablist" aria-label="Фильтр подборок"><button class="quick-tab active" data-selection-filter="all">Все <span>8</span></button><button class="quick-tab" data-selection-filter="sent">Отправленные <span>6</span></button><button class="quick-tab" data-selection-filter="viewed">Просмотренные <span>3</span></button><button class="quick-tab" data-selection-filter="draft">Черновики <span>2</span></button></div>
+              <label class="selection-search"><span data-icon="search"></span><input id="selectionSearch" type="search" placeholder="Клиент или название" /></label>
+            </div>
+            <div class="selection-list-head"><span>Подборка</span><span>Объекты</span><span>Активность клиента</span><span>Ответственный</span><span></span></div>
+            <div class="selection-list" id="selectionList"></div>
           </section>
         </section>
 
@@ -363,6 +384,21 @@
       <div class="modal-head"><div><p class="eyebrow">Импорт данных</p><h2>Загрузить Excel или CSV</h2><span>Сначала покажем строки и предложим сопоставить колонки.</span></div><button class="icon-button modal-close" aria-label="Закрыть"><span data-icon="close"></span></button></div>
       <div class="dropzone"><span class="drop-icon" data-icon="upload"></span><strong>Перетащите таблицу сюда</strong><p>XLSX, XLS или CSV · до 25 МБ</p><button class="secondary-button">Выбрать файл</button></div>
       <div class="recent-import"><span data-icon="file"></span><div><strong>objects_september.xlsx</strong><small>24 объекта · импортирован 16 сентября</small></div><span class="status-badge active">Готово</span></div>
+    </div>
+
+    <div class="modal selection-modal" id="selectionModal" aria-hidden="true">
+      <div class="modal-head"><div><p class="eyebrow">Новая подборка</p><h2>Собрать объекты для клиента</h2><span>Точный адрес, контакты собственника и внутренние комментарии наружу не попадут.</span></div><button class="icon-button modal-close" aria-label="Закрыть"><span data-icon="close"></span></button></div>
+      <form id="selectionForm">
+        <div class="selection-form-fields"><label>Название подборки *<input id="selectionTitle" required placeholder="Например, 2-комнатные в Аркадии" /></label><label>Имя клиента<input id="selectionClient" placeholder="Елена" /></label><label class="wide">Комментарий для клиента<textarea id="selectionNote" rows="2" placeholder="Короткое пояснение к вариантам"></textarea></label></div>
+        <div class="selection-picker-head"><div><strong>Объекты</strong><span id="selectionPickedCount">0 выбрано</span></div><button type="button" id="selectSuggestedButton">Выбрать подходящие</button></div>
+        <div class="selection-property-list" id="selectionPropertyList"></div>
+        <div class="modal-actions"><button type="button" class="secondary-button modal-close">Отмена</button><button type="submit" class="primary-button">Создать подборку</button></div>
+      </form>
+    </div>
+
+    <div class="modal client-preview-modal" id="clientPreviewModal" aria-hidden="true">
+      <div class="client-preview-head"><div><span class="client-brand">Estate Base</span><small>Подборка недвижимости</small></div><div><button class="secondary-button" id="copyPreviewLinkButton"><span data-icon="layers"></span>Скопировать ссылку</button><button class="icon-button modal-close" aria-label="Закрыть"><span data-icon="close"></span></button></div></div>
+      <div class="client-preview-body"><p class="eyebrow">Персональная подборка</p><h2 id="clientPreviewTitle">Квартиры для Елены</h2><p id="clientPreviewNote">Подобрали варианты по вашим параметрам.</p><div class="client-property-grid" id="clientPropertyGrid"></div><div class="client-preview-foot"><span>Есть вопросы по объектам?</span><strong>Анна Коваль · агентство недвижимости</strong></div></div>
     </div>
 
     <div class="toast" id="toast"><span data-icon="check"></span><div><strong>Готово</strong><p id="toastMessage">Изменения сохранены</p></div></div>

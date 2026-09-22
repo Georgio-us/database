@@ -46,7 +46,18 @@ const properties = [
   { id:'OD-161', type:'Паркинг', address:'Каманина, 16А', district:'Приморский', zone:'Аркадия', rooms:0, area:18, floor:'−1 уровень', price:'$24 000', owner:'Роман Ткаченко', phone:'+380 73 550 91 12', agent:'Игорь Мельник', initials:'ИМ', status:'active', statusText:'Актуально 3 дня назад', exclusive:false, published:false, image:'https://images.pexels.com/photos/7166945/pexels-photo-7166945.jpeg?auto=compress&fit=crop&w=900&h=620' }
 ];
 
-const state = { section:'Главная', view: 'grid', status: 'all', tab: 'all', search: '', type: 'all', district: 'all', rooms: 'all', selected: new Set(), activePropertyId: null, newPhotos: [], newDocuments: [], existingPhotoCount:0, objectFormMode:'create', editingPropertyId:null };
+const selections = [
+  { id:'SL-008', title:'2-комнатные в Аркадии', client:'Елена', propertyIds:['OD-204','OD-187','OD-198'], status:'viewed', activity:'Открыта сегодня в 13:24', views:4, agent:'Анна Коваль', initials:'АК', note:'Варианты в новых домах, рядом с морем и парком.' },
+  { id:'SL-007', title:'Дом у моря до $320 000', client:'Александр', propertyIds:['OD-193','OD-204'], status:'sent', activity:'Отправлена вчера', views:0, agent:'Николай Савчук', initials:'НС', note:'Собрали варианты с удобным выездом к центру.' },
+  { id:'SL-006', title:'Коммерция в центре', client:'Мария', propertyIds:['OD-176'], status:'viewed', activity:'Открыта 3 раза', views:3, agent:'Николай Савчук', initials:'НС', note:'Помещения со своим входом и хорошим трафиком.' },
+  { id:'SL-005', title:'Квартира для инвестиций', client:'Олег', propertyIds:['OD-204','OD-198','OD-169'], status:'sent', activity:'Отправлена 19 сентября', views:0, agent:'Игорь Мельник', initials:'ИМ', note:'' },
+  { id:'SL-004', title:'Варианты на Таирова', client:'Ирина', propertyIds:['OD-169','OD-187'], status:'draft', activity:'Не отправлена', views:0, agent:'Анна Коваль', initials:'АК', note:'' },
+  { id:'SL-003', title:'Участок под строительство', client:'Владимир', propertyIds:['OD-181'], status:'viewed', activity:'Открыта 18 сентября', views:2, agent:'Игорь Мельник', initials:'ИМ', note:'' },
+  { id:'SL-002', title:'Небольшая квартира до $70 000', client:'Светлана', propertyIds:['OD-187','OD-169'], status:'sent', activity:'Отправлена 17 сентября', views:0, agent:'Анна Коваль', initials:'АК', note:'' },
+  { id:'SL-001', title:'Паркинг в Аркадии', client:'Дмитрий', propertyIds:['OD-161'], status:'draft', activity:'Не отправлена', views:0, agent:'Игорь Мельник', initials:'ИМ', note:'' }
+];
+
+const state = { section:'Главная', view: 'grid', status: 'all', tab: 'all', search: '', type: 'all', district: 'all', rooms: 'all', selectionFilter:'all', selectionSearch:'', selected: new Set(), activePropertyId: null, activeSelectionId:null, newPhotos: [], newDocuments: [], existingPhotoCount:0, objectFormMode:'create', editingPropertyId:null };
 const grid = document.getElementById('propertyGrid');
 const emptyState = document.getElementById('emptyState');
 const bulkBar = document.getElementById('bulkBar');
@@ -121,6 +132,88 @@ function render() {
   });
 }
 
+function escapeHTML(value) {
+  return String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' })[character]);
+}
+
+function selectionProperties(selection) {
+  return selection.propertyIds.map((id) => properties.find((property) => property.id === id)).filter(Boolean);
+}
+
+function filteredSelections() {
+  const search = state.selectionSearch.trim().toLocaleLowerCase('ru');
+  return selections.filter((selection) => {
+    const filterMatch = state.selectionFilter === 'all' || (state.selectionFilter === 'sent' ? selection.status !== 'draft' : selection.status === state.selectionFilter);
+    const searchMatch = !search || `${selection.title} ${selection.client} ${selection.id}`.toLocaleLowerCase('ru').includes(search);
+    return filterMatch && searchMatch;
+  });
+}
+
+function selectionRowTemplate(selection) {
+  const items = selectionProperties(selection);
+  const coverA = items[0]?.image || properties[0].image;
+  const coverB = items[1]?.image || coverA;
+  const activityLabel = selection.status === 'viewed' ? `${selection.views} ${selection.views === 1 ? 'просмотр' : 'просмотра'}` : selection.status === 'sent' ? 'Ссылка отправлена' : 'Черновик';
+  return `<article class="selection-row" data-selection-id="${selection.id}">
+    <div class="selection-main"><span class="selection-cover-stack"><i style="background-image:url('${coverA}')"></i><i style="background-image:url('${coverB}')"></i></span><span><strong>${escapeHTML(selection.title)}</strong><small>${escapeHTML(selection.client || 'Клиент не указан')} · ${selection.id}</small></span></div>
+    <div class="selection-object-count"><strong>${items.length} ${items.length === 1 ? 'объект' : items.length < 5 ? 'объекта' : 'объектов'}</strong><small>от $${Math.min(...items.map((item) => Number(String(item.price).replace(/\D/g,'')) || 0)).toLocaleString('ru-RU')}</small></div>
+    <div class="selection-activity"><strong>${activityLabel}</strong><small>${escapeHTML(selection.activity)}</small></div>
+    <div class="selection-agent"><span class="agent-avatar">${selection.initials}</span>${escapeHTML(selection.agent)}</div>
+    <div class="selection-actions"><button data-selection-preview="${selection.id}" aria-label="Открыть клиентский вид">${icon('layers')}</button><button data-selection-copy="${selection.id}" aria-label="Скопировать ссылку">${icon('send')}</button></div>
+  </article>`;
+}
+
+function renderSelections() {
+  const items = filteredSelections();
+  const list = document.getElementById('selectionList');
+  document.getElementById('selectionCountBadge').textContent = selections.length;
+  document.querySelector('.nav-item[data-section="Подборки"] b').textContent = selections.length;
+  document.querySelector('[data-selection-filter="all"] span').textContent = selections.length;
+  document.querySelector('[data-selection-filter="sent"] span').textContent = selections.filter((selection) => selection.status !== 'draft').length;
+  document.querySelector('[data-selection-filter="viewed"] span').textContent = selections.filter((selection) => selection.status === 'viewed').length;
+  document.querySelector('[data-selection-filter="draft"] span').textContent = selections.filter((selection) => selection.status === 'draft').length;
+  list.innerHTML = items.length ? items.map(selectionRowTemplate).join('') : '<div class="selection-empty"><strong>Подборки не найдены</strong><p>Измените фильтр или создайте новую подборку.</p></div>';
+  list.querySelectorAll('[data-selection-preview]').forEach((button) => button.addEventListener('click', () => openClientPreview(button.dataset.selectionPreview)));
+  list.querySelectorAll('[data-selection-copy]').forEach((button) => button.addEventListener('click', () => copySelectionLink(button.dataset.selectionCopy)));
+}
+
+function updateSelectionPickedCount() {
+  const count = document.querySelectorAll('#selectionPropertyList input:checked').length;
+  document.getElementById('selectionPickedCount').textContent = `${count} выбрано`;
+}
+
+function renderSelectionPicker(preselected = state.selected) {
+  document.getElementById('selectionPropertyList').innerHTML = properties.map((property) => `<label class="selection-property-option"><input type="checkbox" value="${property.id}" ${preselected.has(property.id) ? 'checked' : ''}/><i style="background-image:url('${property.image}')"></i><span><strong>${escapeHTML(property.address)}</strong><small>${property.type} · ${locationLabel(property)}</small></span><b>${property.price}</b></label>`).join('');
+  document.querySelectorAll('#selectionPropertyList input').forEach((input) => input.addEventListener('change', updateSelectionPickedCount));
+  updateSelectionPickedCount();
+}
+
+function openSelectionModal(preselectedIds = state.selected) {
+  document.getElementById('selectionForm').reset();
+  renderSelectionPicker(new Set(preselectedIds));
+  drawer.classList.remove('open'); drawer.setAttribute('aria-hidden','true');
+  openModal(selectionModal);
+}
+
+function openClientPreview(selectionId) {
+  const selection = selections.find((item) => item.id === selectionId);
+  if (!selection) return;
+  state.activeSelectionId = selectionId;
+  document.getElementById('clientPreviewTitle').textContent = selection.client ? `${selection.title} · ${selection.client}` : selection.title;
+  document.getElementById('clientPreviewNote').textContent = selection.note || 'Подобрали варианты по вашим параметрам. Точный адрес и детали показа уточнит риелтор.';
+  document.getElementById('clientPropertyGrid').innerHTML = selectionProperties(selection).map((property) => {
+    const fact = facts(property);
+    return `<article class="client-property-card"><i style="background-image:url('${property.image}')"></i><div><small>${property.type} · ${property.zone}</small><strong>${property.district} район</strong><span>${fact[0]} · ${fact[1]} · ${fact[2]}</span><b>${property.price}</b></div></article>`;
+  }).join('');
+  openModal(clientPreviewModal);
+}
+
+async function copySelectionLink(selectionId) {
+  const link = `https://estatebase.example/s/${selectionId.toLowerCase()}`;
+  try { await navigator.clipboard.writeText(link); showToast('Ссылка на подборку скопирована'); }
+  catch { showToast('Ссылка подготовлена для отправки'); }
+}
+
 function updateBulkBar() {
   const count = state.selected.size;
   document.getElementById('selectedCount').textContent = count;
@@ -178,6 +271,7 @@ document.getElementById('selectAll').addEventListener('change', (event) => {
 });
 document.getElementById('clearSelection').addEventListener('click', () => { state.selected.clear(); render(); });
 document.querySelectorAll('[data-action]').forEach((button) => button.addEventListener('click', () => {
+  if (button.dataset.action === 'selection') { openSelectionModal(state.selected); return; }
   const labels = { agent:'Ответственный назначен', verify:'Объекты актуализированы', publish:'Отправлено в очередь публикации', archive:'Объекты перемещены в архив' };
   showToast(`${labels[button.dataset.action]}: ${state.selected.size}`);
   state.selected.clear();
@@ -188,12 +282,16 @@ const overlay = document.getElementById('overlay');
 const drawer = document.getElementById('detailDrawer');
 const addModal = document.getElementById('addModal');
 const importModal = document.getElementById('importModal');
+const selectionModal = document.getElementById('selectionModal');
+const clientPreviewModal = document.getElementById('clientPreviewModal');
 
 function showOverlay() { overlay.classList.add('visible'); document.body.style.overflow = 'hidden'; }
 function closeLayers() {
   drawer.classList.remove('open'); drawer.setAttribute('aria-hidden','true');
   addModal.classList.remove('open'); addModal.setAttribute('aria-hidden','true');
   importModal.classList.remove('open'); importModal.setAttribute('aria-hidden','true');
+  selectionModal.classList.remove('open'); selectionModal.setAttribute('aria-hidden','true');
+  clientPreviewModal.classList.remove('open'); clientPreviewModal.setAttribute('aria-hidden','true');
   document.getElementById('sidebar').classList.remove('open');
   overlay.classList.remove('visible'); document.body.style.overflow = '';
 }
@@ -647,7 +745,7 @@ document.getElementById('verifyButton').addEventListener('click', () => {
 document.getElementById('editPropertyButton').addEventListener('click', () => openFullEditForm('main'));
 document.getElementById('editCommentButton').addEventListener('click', () => openFullEditForm('media'));
 
-document.getElementById('addToSelectionButton').addEventListener('click', () => showToast('Объект добавлен в новую подборку'));
+document.getElementById('addToSelectionButton').addEventListener('click', () => openSelectionModal(new Set([state.activePropertyId])));
 document.getElementById('updateRiaButton').addEventListener('click', () => showToast('Обновление DIM.RIA поставлено в очередь'));
 document.getElementById('publicationSettingsButton').addEventListener('click', () => showToast('Настройки публикаций будут отдельным экраном'));
 document.getElementById('changeAgentButton').addEventListener('click', () => showToast('Ответственного может сменить руководитель'));
@@ -656,7 +754,6 @@ document.getElementById('editOwnerButton').addEventListener('click', () => openF
 document.getElementById('menuButton').addEventListener('click', () => { document.getElementById('sidebar').classList.add('open'); showOverlay(); });
 
 const sectionCopy = {
-  'Подборки': { icon:'layers', eyebrow:'Работа с клиентами', description:'Сохранённые наборы объектов и публичные ссылки для клиентов.', title:'Подборки клиентов', text:'Следующей итерацией здесь появятся создание подборки, клиентский просмотр и отслеживание открытий.' },
   'Импорт': { icon:'upload', eyebrow:'Наполнение базы', description:'История загрузок Excel и CSV, проверка строк и найденные дубли.', title:'Импорт объектов', text:'Мастер загрузки уже доступен кнопкой «Импорт». Здесь появятся история операций и разбор ошибок.' },
   'Публикации': { icon:'send', eyebrow:'Внешние площадки', description:'Состояние объявлений агентства на OLX и DIM.RIA.', title:'Центр публикаций', text:'Здесь будут очереди отправки, ошибки площадок и синхронизация изменённых объектов.' },
   'Команда': { icon:'users', eyebrow:'Управление', description:'Сотрудники агентства, ответственность за объекты и рабочая активность.', title:'Команда агентства', text:'Здесь появятся сотрудники, нагрузка по объектам и управление доступами.' },
@@ -667,7 +764,13 @@ function showAppSection(section) {
   state.section = section;
   document.querySelectorAll('.nav-item').forEach((item) => item.classList.toggle('active', item.dataset.section === section));
   document.querySelectorAll('.app-view').forEach((view) => { view.classList.remove('active'); view.hidden = true; });
-  const target = section === 'Главная' ? document.getElementById('dashboardView') : section === 'Объекты' ? document.getElementById('objectsView') : document.getElementById('sectionPlaceholder');
+  const target = section === 'Главная'
+    ? document.getElementById('dashboardView')
+    : section === 'Объекты'
+      ? document.getElementById('objectsView')
+      : section === 'Подборки'
+        ? document.getElementById('selectionsView')
+        : document.getElementById('sectionPlaceholder');
   target.hidden = false;
   target.classList.add('active');
   if (sectionCopy[section]) {
@@ -681,6 +784,7 @@ function showAppSection(section) {
     document.getElementById('placeholderIcon').innerHTML = icon(copy.icon);
   }
   document.title = `Estate Base — ${section}`;
+  if (section === 'Подборки') renderSelections();
   document.getElementById('sidebar').classList.remove('open');
   if (window.innerWidth <= 700) { overlay.classList.remove('visible'); document.body.style.overflow = ''; }
   window.scrollTo({ top:0, behavior:'smooth' });
@@ -698,6 +802,31 @@ document.querySelectorAll('[data-open-status]').forEach((button) => button.addEv
 document.querySelectorAll('[data-open-property]').forEach((button) => button.addEventListener('click', () => { showAppSection('Объекты'); openDrawer(button.dataset.openProperty); }));
 document.querySelector('[data-dashboard-action="add"]').addEventListener('click', openCreateForm);
 document.querySelector('[data-dashboard-action="import"]').addEventListener('click', () => openModal(importModal));
+document.getElementById('newSelectionButton').addEventListener('click', () => openSelectionModal(new Set()));
+document.querySelectorAll('[data-selection-filter]').forEach((button) => button.addEventListener('click', () => {
+  state.selectionFilter = button.dataset.selectionFilter;
+  document.querySelectorAll('[data-selection-filter]').forEach((item) => item.classList.toggle('active', item === button));
+  renderSelections();
+}));
+document.getElementById('selectionSearch').addEventListener('input', (event) => { state.selectionSearch = event.target.value; renderSelections(); });
+document.getElementById('selectSuggestedButton').addEventListener('click', () => {
+  document.querySelectorAll('#selectionPropertyList input').forEach((input, index) => { input.checked = index < 3; });
+  updateSelectionPickedCount();
+});
+document.getElementById('selectionForm').addEventListener('submit', (event) => {
+  event.preventDefault();
+  const propertyIds = [...document.querySelectorAll('#selectionPropertyList input:checked')].map((input) => input.value);
+  if (!propertyIds.length) { showToast('Выберите хотя бы один объект'); return; }
+  const idNumber = Math.max(...selections.map((selection) => Number(selection.id.replace(/\D/g,'')))) + 1;
+  const selection = { id:`SL-${String(idNumber).padStart(3,'0')}`, title:document.getElementById('selectionTitle').value.trim(), client:document.getElementById('selectionClient').value.trim(), note:document.getElementById('selectionNote').value.trim(), propertyIds, status:'draft', activity:'Создана только что', views:0, agent:'Анна Коваль', initials:'АК' };
+  selections.unshift(selection);
+  state.selected.clear();
+  closeLayers();
+  showAppSection('Подборки');
+  render();
+  showToast(`${selection.id} создана как черновик`);
+});
+document.getElementById('copyPreviewLinkButton').addEventListener('click', () => copySelectionLink(state.activeSelectionId));
 
 let toastTimer;
 function showToast(message) {
