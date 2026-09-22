@@ -46,7 +46,7 @@ const properties = [
   { id:'OD-161', type:'Паркинг', address:'Каманина, 16А', district:'Приморский', zone:'Аркадия', rooms:0, area:18, floor:'−1 уровень', price:'$24 000', owner:'Роман Ткаченко', phone:'+380 73 550 91 12', agent:'Игорь Мельник', initials:'ИМ', status:'active', statusText:'Актуально 3 дня назад', exclusive:false, published:false, image:'https://images.pexels.com/photos/7166945/pexels-photo-7166945.jpeg?auto=compress&fit=crop&w=900&h=620' }
 ];
 
-const state = { view: 'grid', status: 'all', tab: 'all', search: '', type: 'all', district: 'all', rooms: 'all', selected: new Set(), activePropertyId: null, newPhotos: [], newDocuments: [], existingPhotoCount:0, objectFormMode:'create', editingPropertyId:null };
+const state = { section:'Главная', view: 'grid', status: 'all', tab: 'all', search: '', type: 'all', district: 'all', rooms: 'all', selected: new Set(), activePropertyId: null, newPhotos: [], newDocuments: [], existingPhotoCount:0, objectFormMode:'create', editingPropertyId:null };
 const grid = document.getElementById('propertyGrid');
 const emptyState = document.getElementById('emptyState');
 const bulkBar = document.getElementById('bulkBar');
@@ -153,6 +153,7 @@ filterBindings.forEach(([id, key, eventName]) => document.getElementById(id).add
   if (key === 'search') {
     document.getElementById('catalogSearch').value = event.target.value;
     document.getElementById('globalSearch').value = event.target.value;
+    if (id === 'globalSearch' && event.target.value.trim()) showAppSection('Объекты');
   }
   render();
 }));
@@ -653,10 +654,50 @@ document.getElementById('changeAgentButton').addEventListener('click', () => sho
 document.getElementById('addDocumentButton').addEventListener('click', () => showToast('Документ отмечен в карточке объекта'));
 document.getElementById('editOwnerButton').addEventListener('click', () => openFullEditForm('contact'));
 document.getElementById('menuButton').addEventListener('click', () => { document.getElementById('sidebar').classList.add('open'); showOverlay(); });
-document.querySelectorAll('.nav-item').forEach((button) => button.addEventListener('click', () => {
-  if (button.classList.contains('active')) return;
-  showToast(`Раздел «${button.dataset.section}» появится в следующем прототипе`);
-}));
+
+const sectionCopy = {
+  'Подборки': { icon:'layers', eyebrow:'Работа с клиентами', description:'Сохранённые наборы объектов и публичные ссылки для клиентов.', title:'Подборки клиентов', text:'Следующей итерацией здесь появятся создание подборки, клиентский просмотр и отслеживание открытий.' },
+  'Импорт': { icon:'upload', eyebrow:'Наполнение базы', description:'История загрузок Excel и CSV, проверка строк и найденные дубли.', title:'Импорт объектов', text:'Мастер загрузки уже доступен кнопкой «Импорт». Здесь появятся история операций и разбор ошибок.' },
+  'Публикации': { icon:'send', eyebrow:'Внешние площадки', description:'Состояние объявлений агентства на OLX и DIM.RIA.', title:'Центр публикаций', text:'Здесь будут очереди отправки, ошибки площадок и синхронизация изменённых объектов.' },
+  'Команда': { icon:'users', eyebrow:'Управление', description:'Сотрудники агентства, ответственность за объекты и рабочая активность.', title:'Команда агентства', text:'Здесь появятся сотрудники, нагрузка по объектам и управление доступами.' },
+  'Настройки': { icon:'settings', eyebrow:'Управление', description:'Параметры базы, справочники, курс НБУ и правила актуализации.', title:'Настройки базы', text:'Здесь будут справочники районов, сроки актуализации, реквизиты агентства и подключения.' }
+};
+
+function showAppSection(section) {
+  state.section = section;
+  document.querySelectorAll('.nav-item').forEach((item) => item.classList.toggle('active', item.dataset.section === section));
+  document.querySelectorAll('.app-view').forEach((view) => { view.classList.remove('active'); view.hidden = true; });
+  const target = section === 'Главная' ? document.getElementById('dashboardView') : section === 'Объекты' ? document.getElementById('objectsView') : document.getElementById('sectionPlaceholder');
+  target.hidden = false;
+  target.classList.add('active');
+  if (sectionCopy[section]) {
+    const copy = sectionCopy[section];
+    const placeholder = document.getElementById('sectionPlaceholder');
+    placeholder.querySelector('.eyebrow').textContent = copy.eyebrow;
+    document.getElementById('placeholderTitle').textContent = section;
+    document.getElementById('placeholderDescription').textContent = copy.description;
+    document.getElementById('placeholderPanelTitle').textContent = copy.title;
+    document.getElementById('placeholderPanelText').textContent = copy.text;
+    document.getElementById('placeholderIcon').innerHTML = icon(copy.icon);
+  }
+  document.title = `Estate Base — ${section}`;
+  document.getElementById('sidebar').classList.remove('open');
+  if (window.innerWidth <= 700) { overlay.classList.remove('visible'); document.body.style.overflow = ''; }
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+function openObjectsByStatus(status = 'all') {
+  showAppSection('Объекты');
+  state.status = status;
+  document.querySelectorAll('.metric').forEach((item) => item.classList.toggle('active', item.dataset.status === status));
+  render();
+}
+
+document.querySelectorAll('.nav-item, [data-navigate]').forEach((button) => button.addEventListener('click', () => showAppSection(button.dataset.section || button.dataset.navigate)));
+document.querySelectorAll('[data-open-status]').forEach((button) => button.addEventListener('click', () => openObjectsByStatus(button.dataset.openStatus)));
+document.querySelectorAll('[data-open-property]').forEach((button) => button.addEventListener('click', () => { showAppSection('Объекты'); openDrawer(button.dataset.openProperty); }));
+document.querySelector('[data-dashboard-action="add"]').addEventListener('click', openCreateForm);
+document.querySelector('[data-dashboard-action="import"]').addEventListener('click', () => openModal(importModal));
 
 let toastTimer;
 function showToast(message) {

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#101828" />
     <meta name="description" content="Прототип внутренней базы объектов агентства недвижимости" />
-    <title>Estate Base — Объекты</title>
+    <title>Estate Base — Главная</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -24,14 +24,14 @@
         </div>
 
         <nav class="main-nav" aria-label="Основная навигация">
-          <button class="nav-item" data-section="Главная"><span data-icon="home"></span><span>Главная</span></button>
-          <button class="nav-item active" data-section="Объекты"><span data-icon="building"></span><span>Объекты</span><b>152</b></button>
-          <button class="nav-item" data-section="Подборки"><span data-icon="layers"></span><span>Подборки</span><b>8</b></button>
-          <button class="nav-item" data-section="Импорт"><span data-icon="upload"></span><span>Импорт</span></button>
-          <button class="nav-item" data-section="Публикации"><span data-icon="send"></span><span>Публикации</span><i class="nav-alert">3</i></button>
+          <button class="nav-item active" data-section="Главная" aria-label="Главная"><span data-icon="home"></span><span>Главная</span></button>
+          <button class="nav-item" data-section="Объекты" aria-label="Объекты"><span data-icon="building"></span><span>Объекты</span><b>152</b></button>
+          <button class="nav-item" data-section="Подборки" aria-label="Подборки"><span data-icon="layers"></span><span>Подборки</span><b>8</b></button>
+          <button class="nav-item" data-section="Импорт" aria-label="Импорт"><span data-icon="upload"></span><span>Импорт</span></button>
+          <button class="nav-item" data-section="Публикации" aria-label="Публикации"><span data-icon="send"></span><span>Публикации</span><i class="nav-alert">3</i></button>
           <div class="nav-label">Управление</div>
-          <button class="nav-item" data-section="Команда"><span data-icon="users"></span><span>Команда</span></button>
-          <button class="nav-item" data-section="Настройки"><span data-icon="settings"></span><span>Настройки</span></button>
+          <button class="nav-item" data-section="Команда" aria-label="Команда"><span data-icon="users"></span><span>Команда</span></button>
+          <button class="nav-item" data-section="Настройки" aria-label="Настройки"><span data-icon="settings"></span><span>Настройки</span></button>
         </nav>
 
         <div class="sidebar-foot">
@@ -59,7 +59,68 @@
           </div>
         </header>
 
-        <section class="content">
+        <section class="content app-view active" id="dashboardView" data-app-view="Главная">
+          <div class="dashboard-heading">
+            <div>
+              <p class="eyebrow">Вторник, 22 сентября</p>
+              <h1>Добрый день, Анна</h1>
+              <p>Сводка по базе и задачи, которые требуют решения сегодня.</p>
+            </div>
+            <div class="dashboard-actions">
+              <button class="secondary-button" data-dashboard-action="import"><span data-icon="upload"></span>Импортировать</button>
+              <button class="primary-button" data-dashboard-action="add"><span data-icon="plus"></span>Добавить объект</button>
+            </div>
+          </div>
+
+          <div class="dashboard-metrics" aria-label="Состояние базы">
+            <button class="dashboard-metric" data-open-status="active"><span class="metric-icon blue" data-icon="building"></span><span><small>Активные объекты</small><strong>128</strong><em>из 152 в базе</em></span></button>
+            <button class="dashboard-metric" data-open-status="attention"><span class="metric-icon amber" data-icon="clock"></span><span><small>Нужно актуализировать</small><strong>12</strong><em>4 просрочены</em></span></button>
+            <button class="dashboard-metric" data-open-status="draft"><span class="metric-icon gray" data-icon="edit"></span><span><small>Черновики</small><strong>7</strong><em>3 без фотографий</em></span></button>
+            <button class="dashboard-metric" data-navigate="Публикации"><span class="metric-icon violet" data-icon="send"></span><span><small>Ошибки публикации</small><strong>3</strong><em>OLX и DIM.RIA</em></span></button>
+          </div>
+
+          <div class="dashboard-grid">
+            <section class="dashboard-panel attention-panel">
+              <div class="panel-heading"><div><h2>Требует внимания</h2><p>Сначала то, что влияет на актуальность базы.</p></div><button data-open-status="attention">Все задачи</button></div>
+              <div class="attention-list">
+                <button class="attention-row" data-open-property="OD-198"><span class="attention-kind amber" data-icon="clock"></span><span><strong>Подтвердить актуальность</strong><small>Фонтанская дорога, 49 · проверить сегодня</small></span><b>OD-198</b><span data-icon="chevron"></span></button>
+                <button class="attention-row" data-open-property="OD-176"><span class="attention-kind red" data-icon="clock"></span><span><strong>Не подтверждался 14 дней</strong><small>Большая Арнаутская, 22 · ответственный Николай</small></span><b>OD-176</b><span data-icon="chevron"></span></button>
+                <button class="attention-row" data-open-property="OD-169"><span class="attention-kind gray" data-icon="image"></span><span><strong>Черновик без фотографий</strong><small>Академика Королёва, 56А · заполнено 71%</small></span><b>OD-169</b><span data-icon="chevron"></span></button>
+                <button class="attention-row" data-navigate="Публикации"><span class="attention-kind violet" data-icon="send"></span><span><strong>DIM.RIA ожидает обновления</strong><small>Изменились цены у трёх объектов</small></span><b>3 объекта</b><span data-icon="chevron"></span></button>
+              </div>
+            </section>
+
+            <section class="dashboard-panel activity-panel">
+              <div class="panel-heading"><div><h2>Активность базы</h2><p>Изменения за последние 7 дней</p></div><span class="panel-total">46 действий</span></div>
+              <div class="activity-chart" aria-label="График активности за неделю">
+                <div style="--value:42%"><i></i><small>Пн</small></div><div style="--value:66%"><i></i><small>Вт</small></div><div style="--value:52%"><i></i><small>Ср</small></div><div style="--value:78%"><i></i><small>Чт</small></div><div style="--value:60%"><i></i><small>Пт</small></div><div style="--value:34%"><i></i><small>Сб</small></div><div class="today" style="--value:88%"><i></i><small>Сегодня</small></div>
+              </div>
+              <div class="activity-legend"><span><i class="blue-dot"></i>Обновлено 31</span><span><i class="gray-dot"></i>Добавлено 15</span></div>
+            </section>
+
+            <section class="dashboard-panel recent-panel">
+              <div class="panel-heading"><div><h2>Последние объекты</h2><p>Недавно добавленные и обновлённые карточки.</p></div><button data-navigate="Объекты">Открыть базу</button></div>
+              <div class="recent-table">
+                <div class="recent-table-head"><span>Объект</span><span>Ответственный</span><span>Статус</span><span>Цена</span></div>
+                <button class="recent-object" data-open-property="OD-204"><span><i class="recent-thumb" style="background-image:url('https://images.pexels.com/photos/11296222/pexels-photo-11296222.jpeg?auto=compress&fit=crop&w=120&h=90')"></i><span><strong>Генуэзская, 3Б</strong><small>Квартира · OD-204</small></span></span><span><i class="agent-avatar">АК</i>Анна Коваль</span><span><i class="status-dot active"></i>Активен</span><strong>$128 000</strong></button>
+                <button class="recent-object" data-open-property="OD-198"><span><i class="recent-thumb" style="background-image:url('https://images.pexels.com/photos/6970066/pexels-photo-6970066.jpeg?auto=compress&fit=crop&w=120&h=90')"></i><span><strong>Фонтанская дорога, 49</strong><small>Квартира · OD-198</small></span></span><span><i class="agent-avatar">ИМ</i>Игорь Мельник</span><span><i class="status-dot attention"></i>Проверить</span><strong>$164 000</strong></button>
+                <button class="recent-object" data-open-property="OD-193"><span><i class="recent-thumb" style="background-image:url('https://images.pexels.com/photos/15251055/pexels-photo-15251055/free-photo-of-interior-of-a-modern-apartment.jpeg?auto=compress&fit=crop&w=120&h=90')"></i><span><strong>Дача Ковалевского, 121</strong><small>Дом · OD-193</small></span></span><span><i class="agent-avatar">НС</i>Николай Савчук</span><span><i class="status-dot active"></i>Активен</span><strong>$295 000</strong></button>
+              </div>
+            </section>
+
+            <section class="dashboard-panel side-summary-panel">
+              <div class="panel-heading"><div><h2>Команда сегодня</h2><p>Работа с базой</p></div><button data-navigate="Команда">Подробнее</button></div>
+              <div class="team-summary">
+                <div><span class="agent-avatar">АК</span><span><strong>Анна Коваль</strong><small>12 объектов · 5 действий</small></span><b>3</b></div>
+                <div><span class="agent-avatar">ИМ</span><span><strong>Игорь Мельник</strong><small>9 объектов · 3 действия</small></span><b>2</b></div>
+                <div><span class="agent-avatar">НС</span><span><strong>Николай Савчук</strong><small>10 объектов · 2 действия</small></span><b>1</b></div>
+              </div>
+              <div class="portal-summary"><div><span class="portal olx">olx</span><span><strong>OLX</strong><small>46 объявлений опубликовано</small></span><i class="success-dot"></i></div><div><span class="portal ria">RIA</span><span><strong>DIM.RIA</strong><small>3 объявления требуют обновления</small></span><b>3</b></div></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="content app-view" id="objectsView" data-app-view="Объекты" hidden>
           <div class="page-heading">
             <div>
               <p class="eyebrow">База недвижимости</p>
@@ -118,6 +179,15 @@
             <div id="propertyGrid" class="property-grid"></div>
             <div id="emptyState" class="empty-state hidden"><span data-icon="search"></span><h3>Ничего не найдено</h3><p>Попробуйте изменить фильтры или поисковый запрос.</p><button id="emptyReset">Сбросить фильтры</button></div>
           </section>
+        </section>
+
+        <section class="content app-view" id="sectionPlaceholder" hidden>
+          <div class="page-heading placeholder-heading"><div><p class="eyebrow">Раздел базы</p><h1 id="placeholderTitle">Подборки</h1><p id="placeholderDescription">Рабочий раздел появится в следующей итерации прототипа.</p></div></div>
+          <div class="section-preview-panel">
+            <span class="section-preview-icon" data-icon="layers" id="placeholderIcon"></span>
+            <div><h2 id="placeholderPanelTitle">Подборки клиентов</h2><p id="placeholderPanelText">Здесь будут сохранённые подборки, публичные ссылки и просмотры клиентов.</p></div>
+            <span class="status-badge draft">Следующий этап</span>
+          </div>
         </section>
       </main>
     </div>
