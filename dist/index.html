@@ -155,7 +155,7 @@
 
     <div class="modal object-form-modal" id="addModal" aria-hidden="true">
       <div class="object-form-head">
-        <div><p class="eyebrow">Новый объект</p><div class="object-form-title"><h2>Карточка объекта</h2><span class="draft-chip">Черновик</span></div><span>Обязательные поля отмечены звёздочкой.</span></div>
+        <div><p class="eyebrow" id="objectFormEyebrow">Новый объект</p><div class="object-form-title"><h2 id="objectFormHeading">Карточка объекта</h2><span class="draft-chip" id="objectFormModeChip">Черновик</span></div><span id="objectFormSubheading">Обязательные поля отмечены звёздочкой.</span></div>
         <button class="icon-button modal-close" aria-label="Закрыть"><span data-icon="close"></span></button>
       </div>
       <form id="addForm" novalidate>
@@ -183,7 +183,7 @@
                 <label>Микрорайон<input id="propertyZone" placeholder="Аркадия" /></label>
                 <label>Цена собственника *<input id="propertyPrice" data-required-field type="number" min="1" placeholder="84000" /></label>
                 <label>Валюта<select id="propertyCurrency"><option value="USD">USD</option><option value="UAH">UAH</option></select></label>
-                <label>Статус<select id="propertyInitialStatus"><option value="active">Активный</option><option value="reserved">Резерв</option></select></label>
+                <label>Статус<select id="propertyInitialStatus"><option value="active">Активный</option><option value="reserved">Резерв</option><option value="attention">Требует актуализации</option><option value="draft">Черновик</option></select></label>
               </div>
             </section>
 
@@ -293,23 +293,6 @@
       <div class="modal-head"><div><p class="eyebrow">Импорт данных</p><h2>Загрузить Excel или CSV</h2><span>Сначала покажем строки и предложим сопоставить колонки.</span></div><button class="icon-button modal-close" aria-label="Закрыть"><span data-icon="close"></span></button></div>
       <div class="dropzone"><span class="drop-icon" data-icon="upload"></span><strong>Перетащите таблицу сюда</strong><p>XLSX, XLS или CSV · до 25 МБ</p><button class="secondary-button">Выбрать файл</button></div>
       <div class="recent-import"><span data-icon="file"></span><div><strong>objects_september.xlsx</strong><small>24 объекта · импортирован 16 сентября</small></div><span class="status-badge active">Готово</span></div>
-    </div>
-
-    <div class="modal edit-modal" id="editModal" aria-hidden="true">
-      <div class="modal-head"><div><p class="eyebrow">Карточка объекта</p><h2>Редактирование</h2><span id="editModalCode">Изменения попадут в журнал действий.</span></div><button class="icon-button modal-close" aria-label="Закрыть"><span data-icon="close"></span></button></div>
-      <form id="editForm">
-        <div class="form-grid">
-          <label class="wide">Адрес<input id="editAddress" required /></label>
-          <label>Район<select id="editDistrict" required><option>Приморский</option><option>Киевский</option><option>Хаджибейский</option><option>Пересыпский</option></select></label>
-          <label>Микрорайон<input id="editZone" /></label>
-          <label>Комнаты<input id="editRooms" type="number" min="0" /></label>
-          <label>Площадь<input id="editArea" type="number" min="1" required /></label>
-          <label>Этаж / этажность<input id="editFloor" placeholder="8 / 24" /></label>
-          <label>Цена, USD<input id="editPrice" type="number" min="1" required /></label>
-          <label class="wide">Внутренний комментарий<textarea id="editComment" rows="3"></textarea></label>
-        </div>
-        <div class="modal-actions"><button type="button" class="secondary-button modal-close">Отмена</button><button type="submit" class="primary-button">Сохранить изменения</button></div>
-      </form>
     </div>
 
     <div class="toast" id="toast"><span data-icon="check"></span><div><strong>Готово</strong><p id="toastMessage">Изменения сохранены</p></div></div>
