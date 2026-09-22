@@ -25,7 +25,8 @@ const icons = {
   image: '<rect x="3" y="4" width="14" height="12" rx="2"/><circle cx="8" cy="8" r="1.5"/><path d="m4 14 4-4 3 3 2-2 4 4"/>',
   phone: '<path d="M6 3 3.5 5.5c-.8.8.4 4 3.3 6.9s6.1 4.1 6.9 3.3L16 13.4l-3-2-1.5 1.5c-1.2-.5-3.9-3.2-4.4-4.4L8.5 7 6 3Z"/>',
   info: '<circle cx="10" cy="10" r="8"/><path d="M10 9v5M10 6.5v.1"/>',
-  file: '<path d="M5 2h7l4 4v12H5V2Z"/><path d="M12 2v5h5M8 11h5M8 14h5"/>'
+  file: '<path d="M5 2h7l4 4v12H5V2Z"/><path d="M12 2v5h5M8 11h5M8 14h5"/>',
+  history: '<path d="M4 5v4h4M4.5 8.5A7 7 0 1 1 5 15"/><path d="M10 6v4l3 2"/>'
 };
 
 function icon(name) {
@@ -45,7 +46,7 @@ const properties = [
   { id:'OD-161', type:'Паркинг', address:'Каманина, 16А', district:'Приморский', zone:'Аркадия', rooms:0, area:18, floor:'−1 уровень', price:'$24 000', owner:'Роман Ткаченко', phone:'+380 73 550 91 12', agent:'Игорь Мельник', initials:'ИМ', status:'active', statusText:'Актуально 3 дня назад', exclusive:false, published:false, image:'https://images.pexels.com/photos/7166945/pexels-photo-7166945.jpeg?auto=compress&fit=crop&w=900&h=620' }
 ];
 
-const state = { view: 'grid', status: 'all', tab: 'all', search: '', type: 'all', district: 'all', rooms: 'all', selected: new Set() };
+const state = { view: 'grid', status: 'all', tab: 'all', search: '', type: 'all', district: 'all', rooms: 'all', selected: new Set(), activePropertyId: null };
 const grid = document.getElementById('propertyGrid');
 const emptyState = document.getElementById('emptyState');
 const bulkBar = document.getElementById('bulkBar');
@@ -175,19 +176,33 @@ const overlay = document.getElementById('overlay');
 const drawer = document.getElementById('detailDrawer');
 const addModal = document.getElementById('addModal');
 const importModal = document.getElementById('importModal');
+const editModal = document.getElementById('editModal');
 
 function showOverlay() { overlay.classList.add('visible'); document.body.style.overflow = 'hidden'; }
 function closeLayers() {
   drawer.classList.remove('open'); drawer.setAttribute('aria-hidden','true');
   addModal.classList.remove('open'); addModal.setAttribute('aria-hidden','true');
   importModal.classList.remove('open'); importModal.setAttribute('aria-hidden','true');
+  editModal.classList.remove('open'); editModal.setAttribute('aria-hidden','true');
   document.getElementById('sidebar').classList.remove('open');
   overlay.classList.remove('visible'); document.body.style.overflow = '';
+}
+
+function propertyHistory(property) {
+  if (!property.history) {
+    property.history = [
+      { icon:'check', title:'Подтверждена актуальность объекта', meta:'Анна Коваль · сегодня, 12:46' },
+      { icon:'edit', title:'Цена изменена: $132 000 → ' + property.price, meta:'Игорь Мельник · 18 сентября' },
+      { icon:'plus', title:'Объект добавлен в базу', meta:`${property.agent} · 4 сентября` }
+    ];
+  }
+  return property.history;
 }
 
 function openDrawer(id) {
   const property = properties.find((item) => item.id === id);
   if (!property) return;
+  state.activePropertyId = id;
   const fact = facts(property);
   document.getElementById('drawerCode').textContent = property.id;
   document.getElementById('drawerType').textContent = property.type;
@@ -195,9 +210,27 @@ function openDrawer(id) {
   document.getElementById('drawerLocation').textContent = `${property.zone} · ${property.district} район`;
   document.getElementById('drawerPrice').textContent = property.price;
   document.getElementById('drawerOwner').textContent = property.owner;
+  document.getElementById('drawerOwnerInitials').textContent = property.owner.split(' ').map((part) => part[0]).join('').slice(0,2);
   document.getElementById('drawerPhone').textContent = property.phone;
   document.getElementById('drawerPhone').href = `tel:${property.phone.replace(/\s/g,'')}`;
   document.getElementById('drawerPhoto').style.backgroundImage = `url('${property.image}')`;
+  document.getElementById('drawerAgent').textContent = property.agent;
+  document.getElementById('drawerAgentInitials').textContent = property.initials;
+  document.getElementById('drawerComment').textContent = property.comment || 'Собственник готов к показам после 17:00. Ключи у ответственного риелтора.';
+  document.getElementById('drawerDetailList').innerHTML = [
+    ['Тип недвижимости', property.type],
+    ['Административный район', `${property.district} район`],
+    ['Микрорайон', property.zone || 'Не указан'],
+    ['Общая площадь', property.type === 'Участок' ? `${property.area} соток` : `${property.area} м²`],
+    ['Комнаты', property.rooms || 'Не применимо'],
+    ['Этаж / этажность', property.floor],
+    ['Эксклюзив', property.exclusive ? 'Да' : 'Нет']
+  ].map(([label, value]) => `<div class="detail-row"><span>${label}</span><strong>${value}</strong></div>`).join('');
+  const history = propertyHistory(property);
+  document.getElementById('historyCount').textContent = history.length;
+  document.getElementById('drawerHistory').innerHTML = history.map((item) => `<div class="history-item"><span class="history-icon">${icon(item.icon)}</span><div><strong>${item.title}</strong><small>${item.meta}</small></div></div>`).join('');
+  document.querySelectorAll('[data-drawer-tab]').forEach((button) => button.classList.toggle('active', button.dataset.drawerTab === 'overview'));
+  document.querySelectorAll('[data-drawer-panel]').forEach((panel) => panel.classList.toggle('active', panel.dataset.drawerPanel === 'overview'));
   document.getElementById('drawerFacts').innerHTML = `<div class="key-fact"><small>Комнаты</small><strong>${property.rooms || '—'}</strong></div><div class="key-fact"><small>Площадь</small><strong>${property.type === 'Участок' ? property.area + ' сот.' : property.area + ' м²'}</strong></div><div class="key-fact"><small>Этаж</small><strong>${property.floor}</strong></div><div class="key-fact"><small>Цена за м²</small><strong>${property.type === 'Участок' ? '—' : '$' + Math.round(Number(property.price.replace(/\D/g,'')) / property.area).toLocaleString('ru-RU')}</strong></div>`;
   drawer.classList.add('open'); drawer.setAttribute('aria-hidden','false'); showOverlay();
 }
@@ -211,7 +244,68 @@ document.getElementById('mobileAdd').addEventListener('click', () => openModal(a
 document.getElementById('importButton').addEventListener('click', () => openModal(importModal));
 document.getElementById('addForm').addEventListener('submit', (event) => { event.preventDefault(); closeLayers(); showToast('Объект создан и назначен Анне Коваль'); });
 document.getElementById('saveDraft').addEventListener('click', () => { closeLayers(); showToast('Черновик сохранён'); });
-document.getElementById('verifyButton').addEventListener('click', () => showToast('Актуальность подтверждена сегодня')); 
+document.querySelectorAll('[data-drawer-tab]').forEach((button) => button.addEventListener('click', () => {
+  document.querySelectorAll('[data-drawer-tab]').forEach((item) => item.classList.toggle('active', item === button));
+  document.querySelectorAll('[data-drawer-panel]').forEach((panel) => panel.classList.toggle('active', panel.dataset.drawerPanel === button.dataset.drawerTab));
+}));
+
+document.getElementById('verifyButton').addEventListener('click', () => {
+  const property = properties.find((item) => item.id === state.activePropertyId);
+  if (!property) return;
+  property.status = 'active';
+  property.statusText = 'Актуально сегодня';
+  propertyHistory(property).unshift({ icon:'check', title:'Подтверждена актуальность объекта', meta:'Анна Коваль · только что' });
+  document.getElementById('verificationTitle').textContent = 'Подтверждено сегодня';
+  document.getElementById('verificationMeta').textContent = 'Анна Коваль · только что';
+  openDrawer(property.id);
+  render();
+  showToast('Актуальность подтверждена и записана в журнал');
+});
+
+function openEditModal() {
+  const property = properties.find((item) => item.id === state.activePropertyId);
+  if (!property) return;
+  document.getElementById('editModalCode').textContent = `${property.id} · изменения попадут в журнал действий.`;
+  document.getElementById('editAddress').value = property.address;
+  document.getElementById('editDistrict').value = property.district;
+  document.getElementById('editZone').value = property.zone;
+  document.getElementById('editRooms').value = property.rooms;
+  document.getElementById('editArea').value = property.area;
+  document.getElementById('editFloor').value = property.floor;
+  document.getElementById('editPrice').value = Number(property.price.replace(/\D/g,''));
+  document.getElementById('editComment').value = property.comment || 'Собственник готов к показам после 17:00. Ключи у ответственного риелтора.';
+  openModal(editModal);
+}
+
+document.getElementById('editPropertyButton').addEventListener('click', openEditModal);
+document.getElementById('editCommentButton').addEventListener('click', openEditModal);
+document.getElementById('editForm').addEventListener('submit', (event) => {
+  event.preventDefault();
+  const property = properties.find((item) => item.id === state.activePropertyId);
+  if (!property) return;
+  const oldPrice = property.price;
+  property.address = document.getElementById('editAddress').value.trim();
+  property.district = document.getElementById('editDistrict').value;
+  property.zone = document.getElementById('editZone').value.trim();
+  property.rooms = Number(document.getElementById('editRooms').value) || 0;
+  property.area = Number(document.getElementById('editArea').value);
+  property.floor = document.getElementById('editFloor').value.trim() || 'Не указан';
+  property.price = `$${Number(document.getElementById('editPrice').value).toLocaleString('ru-RU')}`;
+  property.comment = document.getElementById('editComment').value.trim();
+  const title = oldPrice === property.price ? 'Обновлены характеристики объекта' : `Цена изменена: ${oldPrice} → ${property.price}`;
+  propertyHistory(property).unshift({ icon:'edit', title, meta:'Анна Коваль · только что' });
+  editModal.classList.remove('open'); editModal.setAttribute('aria-hidden','true');
+  openDrawer(property.id);
+  render();
+  showToast('Карточка обновлена, изменение добавлено в журнал');
+});
+
+document.getElementById('addToSelectionButton').addEventListener('click', () => showToast('Объект добавлен в новую подборку'));
+document.getElementById('updateRiaButton').addEventListener('click', () => showToast('Обновление DIM.RIA поставлено в очередь'));
+document.getElementById('publicationSettingsButton').addEventListener('click', () => showToast('Настройки публикаций будут отдельным экраном'));
+document.getElementById('changeAgentButton').addEventListener('click', () => showToast('Ответственного может сменить руководитель'));
+document.getElementById('addDocumentButton').addEventListener('click', () => showToast('Документ отмечен в карточке объекта'));
+document.getElementById('editOwnerButton').addEventListener('click', () => showToast('Контакт собственника открыт для редактирования'));
 document.getElementById('menuButton').addEventListener('click', () => { document.getElementById('sidebar').classList.add('open'); showOverlay(); });
 document.querySelectorAll('.nav-item').forEach((button) => button.addEventListener('click', () => {
   if (button.classList.contains('active')) return;

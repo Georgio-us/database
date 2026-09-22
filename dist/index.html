@@ -130,11 +130,27 @@
       <div class="drawer-content">
         <div class="drawer-title"><div><p id="drawerType">Квартира</p><h2 id="drawerAddress">Генуэзская, 3Б</h2><span id="drawerLocation">Аркадия · Приморский район</span></div><strong id="drawerPrice">$128 000</strong></div>
         <div class="key-facts" id="drawerFacts"></div>
-        <div class="drawer-section"><div class="section-title"><h3>Собственник</h3><button>Редактировать</button></div><div class="owner-card"><span class="avatar owner">ЕО</span><div><strong id="drawerOwner">Елена Островская</strong><a id="drawerPhone" href="#">+380 67 420 18 44</a></div><button><span data-icon="phone"></span>Позвонить</button></div></div>
-        <div class="drawer-section"><div class="section-title"><h3>Актуальность</h3><button id="verifyButton">Подтвердить</button></div><div class="verification"><span class="metric-icon green" data-icon="check"></span><div><strong>Подтверждено сегодня</strong><small>Анна Коваль · в 12:46</small></div></div></div>
-        <div class="drawer-section"><div class="section-title"><h3>Публикации</h3><button>Настроить</button></div><div class="publication-row"><span class="portal olx">olx</span><div><strong>Опубликовано</strong><small>Обновлено 18 сентября</small></div><span class="success-dot"></span></div><div class="publication-row"><span class="portal ria">RIA</span><div><strong>Ожидает обновления</strong><small>Изменилась цена объекта</small></div><button class="tiny-button">Обновить</button></div></div>
+        <div class="drawer-tabs" role="tablist" aria-label="Разделы карточки">
+          <button class="active" data-drawer-tab="overview">Обзор</button>
+          <button data-drawer-tab="details">Характеристики</button>
+          <button data-drawer-tab="history">История <span id="historyCount">3</span></button>
+        </div>
+        <div class="drawer-panel active" data-drawer-panel="overview">
+          <div class="drawer-section"><div class="section-title"><h3>Собственник</h3><button id="editOwnerButton">Редактировать</button></div><div class="owner-card"><span class="avatar owner" id="drawerOwnerInitials">ЕО</span><div><strong id="drawerOwner">Елена Островская</strong><a id="drawerPhone" href="#">+380 67 420 18 44</a><small>Показы после 17:00</small></div><button id="callOwnerButton"><span data-icon="phone"></span>Позвонить</button></div></div>
+          <div class="drawer-section"><div class="section-title"><h3>Актуальность</h3><button id="verifyButton">Подтвердить</button></div><div class="verification"><span class="metric-icon green" data-icon="check"></span><div><strong id="verificationTitle">Подтверждено сегодня</strong><small id="verificationMeta">Анна Коваль · в 12:46</small></div></div></div>
+          <div class="drawer-section"><div class="section-title"><h3>Ответственный</h3><button id="changeAgentButton">Сменить</button></div><div class="responsible-row"><span class="agent-avatar" id="drawerAgentInitials">АК</span><div><strong id="drawerAgent">Анна Коваль</strong><small>Основной контакт по объекту</small></div></div></div>
+          <div class="drawer-section"><div class="section-title"><h3>Публикации</h3><button id="publicationSettingsButton">Настроить</button></div><div class="publication-row"><span class="portal olx">olx</span><div><strong>Опубликовано</strong><small>Обновлено 18 сентября</small></div><span class="success-dot"></span></div><div class="publication-row"><span class="portal ria">RIA</span><div><strong>Ожидает обновления</strong><small>Изменилась цена объекта</small></div><button class="tiny-button" id="updateRiaButton">Обновить</button></div></div>
+        </div>
+        <div class="drawer-panel" data-drawer-panel="details">
+          <div class="detail-list" id="drawerDetailList"></div>
+          <div class="drawer-section"><div class="section-title"><h3>Внутренний комментарий</h3><button id="editCommentButton">Изменить</button></div><p class="internal-note" id="drawerComment">Собственник готов к показам после 17:00. Ключи у ответственного риелтора.</p></div>
+          <div class="drawer-section"><div class="section-title"><h3>Документы</h3><button id="addDocumentButton">Добавить</button></div><div class="document-row"><span data-icon="file"></span><div><strong>Договор купли-продажи</strong><small>Отмечен как имеющийся · без файла</small></div></div></div>
+        </div>
+        <div class="drawer-panel" data-drawer-panel="history">
+          <div class="history-list" id="drawerHistory"></div>
+        </div>
       </div>
-      <div class="drawer-actions"><button class="secondary-button"><span data-icon="layers"></span>В подборку</button><button class="primary-button"><span data-icon="edit"></span>Редактировать</button></div>
+      <div class="drawer-actions"><button class="secondary-button" id="addToSelectionButton"><span data-icon="layers"></span>В подборку</button><button class="primary-button" id="editPropertyButton"><span data-icon="edit"></span>Редактировать</button></div>
     </aside>
 
     <div class="modal" id="addModal" aria-hidden="true">
@@ -162,6 +178,23 @@
       <div class="modal-head"><div><p class="eyebrow">Импорт данных</p><h2>Загрузить Excel или CSV</h2><span>Сначала покажем строки и предложим сопоставить колонки.</span></div><button class="icon-button modal-close" aria-label="Закрыть"><span data-icon="close"></span></button></div>
       <div class="dropzone"><span class="drop-icon" data-icon="upload"></span><strong>Перетащите таблицу сюда</strong><p>XLSX, XLS или CSV · до 25 МБ</p><button class="secondary-button">Выбрать файл</button></div>
       <div class="recent-import"><span data-icon="file"></span><div><strong>objects_september.xlsx</strong><small>24 объекта · импортирован 16 сентября</small></div><span class="status-badge active">Готово</span></div>
+    </div>
+
+    <div class="modal edit-modal" id="editModal" aria-hidden="true">
+      <div class="modal-head"><div><p class="eyebrow">Карточка объекта</p><h2>Редактирование</h2><span id="editModalCode">Изменения попадут в журнал действий.</span></div><button class="icon-button modal-close" aria-label="Закрыть"><span data-icon="close"></span></button></div>
+      <form id="editForm">
+        <div class="form-grid">
+          <label class="wide">Адрес<input id="editAddress" required /></label>
+          <label>Район<select id="editDistrict" required><option>Приморский</option><option>Киевский</option><option>Хаджибейский</option><option>Пересыпский</option></select></label>
+          <label>Микрорайон<input id="editZone" /></label>
+          <label>Комнаты<input id="editRooms" type="number" min="0" /></label>
+          <label>Площадь<input id="editArea" type="number" min="1" required /></label>
+          <label>Этаж / этажность<input id="editFloor" placeholder="8 / 24" /></label>
+          <label>Цена, USD<input id="editPrice" type="number" min="1" required /></label>
+          <label class="wide">Внутренний комментарий<textarea id="editComment" rows="3"></textarea></label>
+        </div>
+        <div class="modal-actions"><button type="button" class="secondary-button modal-close">Отмена</button><button type="submit" class="primary-button">Сохранить изменения</button></div>
+      </form>
     </div>
 
     <div class="toast" id="toast"><span data-icon="check"></span><div><strong>Готово</strong><p id="toastMessage">Изменения сохранены</p></div></div>
