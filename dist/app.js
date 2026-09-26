@@ -94,7 +94,20 @@ const publications = [
   { propertyId:'OD-161', olx:'published', ria:'error', changed:'Не хватает фотографий', updated:'20 сентября, 09:41' }
 ];
 
-const state = { section:'Главная', view: 'grid', status: 'all', tab: 'all', search: '', type: 'all', district: 'all', rooms: 'all', selectionFilter:'all', selectionSearch:'', importHistoryFilter:'all', publicationFilter:'all', publicationSearch:'', publicationPortal:'all', publicationAgent:'all', selected: new Set(), publicationSelected:new Set(), activePropertyId: null, activeSelectionId:null, newPhotos: [], newDocuments: [], existingPhotoCount:0, objectFormMode:'create', editingPropertyId:null };
+const teamMembers = [
+  { id:'TM-001', name:'Анна Коваль', initials:'АК', role:'Администратор', position:'Администратор базы', phone:'+380 67 820 14 31', email:'anna@estatebase.ua', objects:31, attention:3, activity:'сегодня, 12:46', status:'active' },
+  { id:'TM-002', name:'Игорь Мельник', initials:'ИМ', role:'Риелтор', position:'Жилая недвижимость', phone:'+380 93 442 18 07', email:'igor@estatebase.ua', objects:48, attention:4, activity:'сегодня, 11:20', status:'active' },
+  { id:'TM-003', name:'Николай Савчук', initials:'НС', role:'Риелтор', position:'Коммерческая недвижимость', phone:'+380 50 118 63 92', email:'nikolay@estatebase.ua', objects:42, attention:5, activity:'сегодня, 09:54', status:'active' },
+  { id:'TM-004', name:'Татьяна Власенко', initials:'ТВ', role:'Руководитель', position:'Руководитель агентства', phone:'+380 67 775 20 18', email:'tatyana@estatebase.ua', objects:13, attention:0, activity:'вчера, 18:12', status:'active' },
+  { id:'TM-005', name:'Ольга Марченко', initials:'ОМ', role:'Риелтор', position:'Жилая недвижимость', phone:'+380 63 921 47 06', email:'olga@estatebase.ua', objects:18, attention:0, activity:'вчера, 16:30', status:'active' },
+  { id:'TM-006', name:'Виктор Левченко', initials:'ВЛ', role:'Риелтор', position:'Загородная недвижимость', phone:'+380 99 610 33 82', email:'viktor@estatebase.ua', objects:0, attention:0, activity:'20 сентября, 14:08', status:'active' },
+  { id:'TM-007', name:'Марина Бондарь', initials:'МБ', role:'Администратор', position:'Офис-менеджер', phone:'+380 73 114 80 52', email:'marina@estatebase.ua', objects:0, attention:0, activity:'сегодня, 10:03', status:'active' },
+  { id:'TM-008', name:'Сергей Клименко', initials:'СК', role:'Риелтор', position:'Инвестиционная недвижимость', phone:'+380 66 715 44 09', email:'sergey@estatebase.ua', objects:0, attention:0, activity:'сегодня, 08:41', status:'active' },
+  { id:'TM-009', name:'Максим Гончар', initials:'МГ', role:'Риелтор', position:'Риелтор', phone:'+380 98 332 51 16', email:'maksim@estatebase.ua', objects:0, attention:0, activity:'Приглашение отправлено', status:'invited' },
+  { id:'TM-010', name:'Елена Ткаченко', initials:'ЕТ', role:'Риелтор', position:'Жилая недвижимость', phone:'+380 97 113 90 26', email:'elena@estatebase.ua', objects:0, attention:0, activity:'15 августа, 12:10', status:'disabled' }
+];
+
+const state = { section:'Главная', view: 'grid', status: 'all', tab: 'all', search: '', type: 'all', district: 'all', rooms: 'all', selectionFilter:'all', selectionSearch:'', importHistoryFilter:'all', publicationFilter:'all', publicationSearch:'', publicationPortal:'all', publicationAgent:'all', teamSearch:'', teamRole:'all', teamStatus:'all', selected: new Set(), publicationSelected:new Set(), activePropertyId: null, activeSelectionId:null, activeTeamMemberId:null, newPhotos: [], newDocuments: [], existingPhotoCount:0, objectFormMode:'create', editingPropertyId:null };
 const importState = { step:1, file:null, fileName:'', completed:false };
 const grid = document.getElementById('propertyGrid');
 const emptyState = document.getElementById('emptyState');
@@ -433,6 +446,70 @@ function resetPublicationFilters() {
   renderPublications();
 }
 
+function teamStatusLabel(status) {
+  const copy = { active:['Активен','active'], invited:['Приглашён','attention'], disabled:['Отключён','draft'] };
+  const [label, className] = copy[status] || copy.active;
+  return `<span class="status-badge ${className}">${label}</span>`;
+}
+
+function filteredTeamMembers() {
+  const query = state.teamSearch.trim().toLocaleLowerCase('ru');
+  return teamMembers.filter((member) => {
+    const haystack = `${member.name} ${member.phone} ${member.email} ${member.position} ${member.role}`.toLocaleLowerCase('ru');
+    return (!query || haystack.includes(query)) && (state.teamRole === 'all' || member.role === state.teamRole) && (state.teamStatus === 'all' || member.status === state.teamStatus);
+  });
+}
+
+function teamMemberRow(member) {
+  return `<article class="team-list-row" data-team-member="${member.id}">
+    <button class="team-member-main" data-edit-team-member="${member.id}"><span class="team-avatar">${member.initials}</span><span><strong>${escapeHTML(member.name)}</strong><small>${escapeHTML(member.position)} · ${escapeHTML(member.phone)}</small></span></button>
+    <span class="team-role ${member.role === 'Администратор' ? 'admin' : member.role === 'Руководитель' ? 'lead' : ''}">${member.role}</span>
+    <div class="team-number"><strong>${member.objects}</strong><small>в работе</small></div>
+    <div class="team-number ${member.attention ? 'needs-attention' : ''}"><strong>${member.attention}</strong><small>${member.attention ? 'нужно проверить' : 'без просрочек'}</small></div>
+    <time>${escapeHTML(member.activity)}</time>
+    <div>${teamStatusLabel(member.status)}</div>
+    <button class="team-row-action" data-edit-team-member="${member.id}" aria-label="Открыть сотрудника">${icon('chevron')}</button>
+  </article>`;
+}
+
+function renderTeam() {
+  const members = filteredTeamMembers();
+  document.getElementById('teamCountBadge').textContent = teamMembers.length;
+  document.getElementById('teamList').innerHTML = members.map(teamMemberRow).join('');
+  document.getElementById('teamList').hidden = !members.length;
+  document.getElementById('teamEmptyState').classList.toggle('hidden', Boolean(members.length));
+  document.querySelectorAll('[data-edit-team-member]').forEach((button) => button.addEventListener('click', () => openTeamMemberModal(button.dataset.editTeamMember)));
+}
+
+function initialsFromName(name) {
+  return name.trim().split(/\s+/).slice(0,2).map((part) => part[0] || '').join('').toLocaleUpperCase('ru');
+}
+
+function openTeamMemberModal(memberId = null) {
+  state.activeTeamMemberId = memberId;
+  const member = teamMembers.find((item) => item.id === memberId);
+  document.getElementById('teamMemberForm').reset();
+  document.getElementById('teamModalEyebrow').textContent = member ? 'Профиль сотрудника' : 'Новый сотрудник';
+  document.getElementById('teamModalTitle').textContent = member ? member.name : 'Добавить в команду';
+  document.getElementById('saveTeamMemberButton').textContent = member ? 'Сохранить изменения' : 'Отправить приглашение';
+  if (member) {
+    document.getElementById('teamMemberName').value = member.name;
+    document.getElementById('teamMemberRole').value = member.role;
+    document.getElementById('teamMemberPhone').value = member.phone;
+    document.getElementById('teamMemberEmail').value = member.email;
+    document.getElementById('teamMemberPosition').value = member.position;
+  }
+  openModal(teamMemberModal);
+}
+
+function resetTeamFilters() {
+  Object.assign(state, { teamSearch:'', teamRole:'all', teamStatus:'all' });
+  document.getElementById('teamSearch').value = '';
+  document.getElementById('teamRoleFilter').value = 'all';
+  document.getElementById('teamStatusFilter').value = 'all';
+  renderTeam();
+}
+
 function updateSelectionPickedCount() {
   const count = document.querySelectorAll('#selectionPropertyList input:checked').length;
   document.getElementById('selectionPickedCount').textContent = `${count} выбрано`;
@@ -540,6 +617,8 @@ const addModal = document.getElementById('addModal');
 const importModal = document.getElementById('importModal');
 const selectionModal = document.getElementById('selectionModal');
 const publicationModal = document.getElementById('publicationModal');
+const teamMemberModal = document.getElementById('teamMemberModal');
+const roleSettingsModal = document.getElementById('roleSettingsModal');
 const clientPreviewModal = document.getElementById('clientPreviewModal');
 
 function showOverlay() { overlay.classList.add('visible'); document.body.style.overflow = 'hidden'; }
@@ -1031,6 +1110,8 @@ function showAppSection(section) {
           ? document.getElementById('importView')
           : section === 'Публикации'
             ? document.getElementById('publicationsView')
+            : section === 'Команда'
+              ? document.getElementById('teamView')
         : document.getElementById('sectionPlaceholder');
   target.hidden = false;
   target.classList.add('active');
@@ -1048,6 +1129,7 @@ function showAppSection(section) {
   if (section === 'Подборки') renderSelections();
   if (section === 'Импорт') renderImportHistory();
   if (section === 'Публикации') renderPublications();
+  if (section === 'Команда') renderTeam();
   document.getElementById('sidebar').classList.remove('open');
   if (window.innerWidth <= 700) { overlay.classList.remove('visible'); document.body.style.overflow = ''; }
   window.scrollTo({ top:0, behavior:'smooth' });
@@ -1115,6 +1197,37 @@ document.getElementById('confirmPublicationButton').addEventListener('click', ()
   showToast(`${count} ${objectWord} ${count === 1 ? 'поставлен' : 'поставлены'} в очередь: ${portals.join(' и ')}`);
   state.publicationSelected.clear();
   renderPublications();
+});
+document.getElementById('addTeamMemberButton').addEventListener('click', () => openTeamMemberModal());
+document.getElementById('teamSearch').addEventListener('input', (event) => { state.teamSearch = event.target.value; renderTeam(); });
+document.getElementById('teamRoleFilter').addEventListener('change', (event) => { state.teamRole = event.target.value; renderTeam(); });
+document.getElementById('teamStatusFilter').addEventListener('change', (event) => { state.teamStatus = event.target.value; renderTeam(); });
+document.getElementById('clearTeamFilters').addEventListener('click', resetTeamFilters);
+document.getElementById('resetTeamEmpty').addEventListener('click', resetTeamFilters);
+document.getElementById('openRoleSettings').addEventListener('click', () => openModal(roleSettingsModal));
+document.getElementById('saveRoleSettings').addEventListener('click', () => { closeLayers(); showToast('Схема ролей сохранена в прототипе'); });
+document.getElementById('teamMemberForm').addEventListener('submit', (event) => {
+  event.preventDefault();
+  const formData = {
+    name:document.getElementById('teamMemberName').value.trim(),
+    role:document.getElementById('teamMemberRole').value,
+    phone:document.getElementById('teamMemberPhone').value.trim(),
+    email:document.getElementById('teamMemberEmail').value.trim(),
+    position:document.getElementById('teamMemberPosition').value.trim() || document.getElementById('teamMemberRole').value
+  };
+  const member = teamMembers.find((item) => item.id === state.activeTeamMemberId);
+  if (member) {
+    Object.assign(member, formData, { initials:initialsFromName(formData.name) });
+    closeLayers();
+    renderTeam();
+    showToast('Профиль сотрудника обновлён');
+    return;
+  }
+  const nextId = Math.max(...teamMembers.map((item) => Number(item.id.replace(/\D/g,'')))) + 1;
+  teamMembers.unshift({ id:`TM-${String(nextId).padStart(3,'0')}`, ...formData, initials:initialsFromName(formData.name), objects:0, attention:0, activity:'Приглашение отправлено', status:'invited' });
+  closeLayers();
+  renderTeam();
+  showToast(`Приглашение отправлено: ${formData.email}`);
 });
 document.getElementById('newSelectionButton').addEventListener('click', () => openSelectionModal(new Set()));
 document.querySelectorAll('[data-selection-filter]').forEach((button) => button.addEventListener('click', () => {

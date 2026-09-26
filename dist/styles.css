@@ -776,6 +776,71 @@ div.object-form-modal > form { min-height: 0; flex: 1; display: flex; flex-direc
 .publication-readiness strong, .publication-readiness small { display: block; }
 .publication-readiness strong { font-size: 10px; }
 .publication-readiness small { margin-top: 3px; color: #5f8877; font-size: 8px; }
+
+.team-heading { align-items: center; }
+.team-metrics { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; margin-bottom: 16px; }
+.team-metrics article { min-height: 94px; display: flex; align-items: center; gap: 12px; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: white; }
+.team-metrics small, .team-metrics strong, .team-metrics div > span { display: block; }
+.team-metrics small { color: #475467; font-size: 9px; font-weight: 600; }
+.team-metrics strong { margin-top: 3px; font-size: 22px; }
+.team-metrics div > span { margin-top: 4px; color: var(--soft); font-size: 8px; }
+.team-panel { min-height: 450px; border: 1px solid var(--line); border-radius: 10px; background: white; overflow: hidden; }
+.team-toolbar { min-height: 66px; display: flex; align-items: center; gap: 8px; padding: 13px 16px; border-bottom: 1px solid var(--line); }
+.team-search { width: min(360px,38%); height: 38px; display: flex; align-items: center; gap: 7px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: 7px; }
+.team-search svg { width: 15px; color: #98a2b3; }
+.team-search input { width: 100%; border: 0; outline: 0; }
+.team-toolbar select { min-width: 155px; height: 38px; padding: 0 34px 0 10px; border: 1px solid var(--line-strong); border-radius: 7px; background: white; color: #475467; outline: 0; }
+.team-list-head, .team-list-row { display: grid; grid-template-columns: minmax(260px,1.45fr) 125px 82px 110px minmax(135px,.8fr) 95px 28px; align-items: center; gap: 12px; padding: 0 16px; }
+.team-list-head { min-height: 38px; border-bottom: 1px solid var(--line); background: #fafbfc; color: #98a2b3; font-size: 8px; font-weight: 700; text-transform: uppercase; }
+.team-list-row { min-height: 70px; border-bottom: 1px solid var(--line); }
+.team-list-row:last-child { border-bottom: 0; }
+.team-list-row:hover { background: #fbfcfe; }
+.team-member-main { min-width: 0; display: flex; align-items: center; gap: 10px; padding: 0; border: 0; background: transparent; text-align: left; }
+.team-avatar { width: 36px; height: 36px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 50%; background: #eaf0f7; color: #42526a; font-size: 10px; font-weight: 800; }
+.team-member-main > span:last-child { min-width: 0; }
+.team-member-main strong, .team-member-main small { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.team-member-main strong { font-size: 10px; }
+.team-member-main small { margin-top: 4px; color: var(--soft); font-size: 8px; }
+.team-role { width: max-content; padding: 5px 7px; border-radius: 5px; background: #edf2fa; color: #466087; font-size: 8px; font-weight: 700; }
+.team-role.admin { background: #f0ecff; color: #6746bc; }
+.team-role.lead { background: #fff1d9; color: #8a5b12; }
+.team-number strong, .team-number small { display: block; }
+.team-number strong { font-size: 11px; }
+.team-number small { margin-top: 3px; color: var(--soft); font-size: 8px; }
+.team-number.needs-attention strong { color: #b26c1a; }
+.team-list-row time { color: #667085; font-size: 9px; }
+.team-row-action { width: 28px; height: 28px; display: grid; place-items: center; border: 0; border-radius: 6px; background: transparent; color: #667085; }
+.team-row-action:hover { background: #f2f4f7; }
+.team-row-action svg { width: 14px; }
+.role-overview { margin-top: 16px; border: 1px solid var(--line); border-radius: 10px; background: white; overflow: hidden; }
+.role-overview-grid { display: grid; grid-template-columns: repeat(3,1fr); }
+.role-overview-grid article { min-height: 118px; display: grid; grid-template-columns: 36px 1fr auto; align-items: flex-start; gap: 10px; padding: 17px; border-right: 1px solid var(--line); }
+.role-overview-grid article:last-child { border-right: 0; }
+.role-symbol { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 8px; background: #edf2fa; color: #466087; font-size: 10px; font-weight: 800; }
+.role-symbol.admin { background: #f0ecff; color: #6746bc; }
+.role-symbol.lead { background: #fff1d9; color: #8a5b12; }
+.role-overview-grid h3 { margin: 1px 0 0; font-size: 11px; }
+.role-overview-grid p { margin: 6px 0 0; color: #667085; font-size: 8px; line-height: 1.55; }
+.role-overview-grid article > strong { font-size: 16px; }
+.team-member-modal { width: min(680px,calc(100vw - 32px)); }
+.team-member-form-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 13px; padding: 18px 20px 8px; }
+.team-member-form-grid label { color: #475467; font-size: 9px; font-weight: 600; }
+.team-member-form-grid label.wide { grid-column: 1 / -1; }
+.team-member-form-grid input, .team-member-form-grid select { width: 100%; height: 39px; margin-top: 6px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: 7px; background: white; color: var(--ink); outline: 0; }
+.team-member-form-grid input:focus, .team-member-form-grid select:focus { border-color: #7fa6eb; box-shadow: 0 0 0 3px #eaf1ff; }
+.team-access-note { min-height: 58px; display: flex; align-items: center; gap: 10px; margin: 10px 20px 18px; padding: 10px 12px; border-radius: 8px; background: #f4f7fb; color: #466087; }
+.team-access-note > svg { width: 18px; }
+.team-access-note strong, .team-access-note small { display: block; }
+.team-access-note strong { font-size: 10px; }
+.team-access-note small { margin-top: 3px; color: #667085; font-size: 8px; }
+.role-settings-modal { width: min(760px,calc(100vw - 32px)); }
+.role-matrix { margin: 18px 20px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.role-matrix > div { min-height: 48px; display: grid; grid-template-columns: minmax(230px,1.5fr) repeat(3,minmax(100px,.65fr)); align-items: center; gap: 8px; padding: 0 12px; border-bottom: 1px solid var(--line); text-align: center; }
+.role-matrix > div:last-child { border-bottom: 0; }
+.role-matrix-head { background: #fafbfc; color: #98a2b3; font-size: 8px; font-weight: 700; text-transform: uppercase; }
+.role-matrix strong { color: #475467; font-size: 9px; text-align: left; }
+.role-matrix svg { width: 16px; margin: auto; color: #39775d; }
+.matrix-dash { color: #c0c6cf; }
 .toast { position: fixed; z-index: 90; right: 24px; bottom: 24px; min-width: 290px; display: flex; align-items: flex-start; gap: 10px; padding: 13px 15px; border: 1px solid #b9e5d2; border-radius: 9px; background: white; box-shadow: 0 18px 45px rgba(16,24,40,.16); transform: translateY(25px); opacity: 0; pointer-events: none; transition: .22s ease; }
 .toast.visible { transform: translateY(0); opacity: 1; }
 .toast > svg { width: 18px; height: 18px; padding: 4px; box-sizing: content-box; border-radius: 50%; color: white; background: var(--green); }
@@ -796,6 +861,8 @@ div.object-form-modal > form { min-height: 0; flex: 1; display: flex; flex-direc
   .portal-settings-button { grid-column: 2 / -1; width: max-content; }
   .publication-list-head, .publication-list-row { grid-template-columns: 28px minmax(230px,1.4fr) 105px 105px minmax(145px,1fr) 28px; }
   .publication-list-head span:nth-child(6), .publication-agent { display: none; }
+  .team-list-head, .team-list-row { grid-template-columns: minmax(230px,1.4fr) 115px 75px 100px 95px 28px; }
+  .team-list-head span:nth-child(5), .team-list-row time { display: none; }
 }
 
 @media (max-width: 980px) {
@@ -823,6 +890,12 @@ div.object-form-modal > form { min-height: 0; flex: 1; display: flex; flex-direc
   .publication-list-head, .publication-list-row { grid-template-columns: 28px minmax(220px,1.4fr) 105px 105px minmax(135px,.9fr) 28px; }
   .publication-toolbar { flex-wrap: wrap; }
   .publication-search { width: auto; flex: 1 1 260px; }
+  .team-metrics { grid-template-columns: repeat(2,1fr); }
+  .team-toolbar { flex-wrap: wrap; }
+  .team-search { width: auto; flex: 1 1 260px; }
+  .team-list-head, .team-list-row { grid-template-columns: minmax(220px,1.5fr) 115px 75px 95px 28px; }
+  .team-list-head span:nth-child(4), .team-list-row .team-number:nth-of-type(2) { display: none; }
+  .role-overview-grid article { padding: 14px; }
 }
 
 @media (max-width: 700px) {
@@ -938,6 +1011,31 @@ div.object-form-modal > form { min-height: 0; flex: 1; display: flex; flex-direc
   .publication-modal { width: 100vw; height: 100dvh; max-height: none; border-radius: 0; }
   .publication-modal-body { padding: 16px 14px; }
   .portal-choice-grid { grid-template-columns: 1fr; }
+  .team-heading .primary-button { width: 40px; padding: 0; font-size: 0; }
+  .team-heading .primary-button svg { width: 18px; }
+  .team-metrics { display: flex; overflow-x: auto; gap: 8px; }
+  .team-metrics article { min-width: 165px; min-height: 82px; padding: 13px; }
+  .team-metrics .metric-icon { display: none; }
+  .team-toolbar { display: grid; grid-template-columns: 1fr 1fr; padding: 12px; }
+  .team-search { width: 100%; grid-column: 1 / -1; }
+  .team-toolbar select { min-width: 0; width: 100%; }
+  .team-toolbar .clear-button { display: none; }
+  .team-list-head { display: none; }
+  .team-list-row { min-height: 86px; grid-template-columns: minmax(0,1fr) auto; grid-template-rows: auto auto; gap: 6px; padding: 12px; }
+  .team-member-main { grid-column: 1; grid-row: 1 / 3; }
+  .team-member-main small { max-width: 210px; }
+  .team-list-row .team-role { grid-column: 2; grid-row: 1; justify-self: end; }
+  .team-list-row .team-number, .team-list-row time, .team-row-action { display: none; }
+  .team-list-row > div:last-of-type { grid-column: 2; grid-row: 2; justify-self: end; }
+  .role-overview-grid { display: block; }
+  .role-overview-grid article { min-height: 98px; border-right: 0; border-bottom: 1px solid var(--line); }
+  .role-overview-grid article:last-child { border-bottom: 0; }
+  .team-member-modal, .role-settings-modal { width: 100vw; height: 100dvh; max-height: none; border-radius: 0; }
+  .team-member-form-grid { grid-template-columns: 1fr; padding: 16px 14px 8px; }
+  .team-member-form-grid label.wide { grid-column: auto; }
+  .team-access-note { margin: 10px 14px 18px; }
+  .role-matrix { margin: 14px; overflow-x: auto; }
+  .role-matrix > div { min-width: 650px; }
   .client-preview-head { padding: 0 14px; }
   .client-preview-head .secondary-button { width: 38px; padding: 0; font-size: 0; }
   .client-preview-body { padding: 22px 14px; }

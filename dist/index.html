@@ -255,6 +255,41 @@
           </section>
         </section>
 
+        <section class="content app-view" id="teamView" data-app-view="Команда" hidden>
+          <div class="page-heading team-heading">
+            <div><p class="eyebrow">Управление</p><div class="title-row"><h1>Команда</h1><span class="count-badge" id="teamCountBadge">10</span></div><p>Сотрудники агентства, роли, рабочие контакты и нагрузка по объектам.</p></div>
+            <button class="primary-button" id="addTeamMemberButton"><span data-icon="plus"></span>Добавить сотрудника</button>
+          </div>
+
+          <div class="team-metrics">
+            <article><span class="metric-icon blue" data-icon="users"></span><div><small>Активные сотрудники</small><strong>8</strong><span>из 10 пользователей</span></div></article>
+            <article><span class="metric-icon green" data-icon="building"></span><div><small>Объектов в работе</small><strong>152</strong><span>у трёх риелторов</span></div></article>
+            <article><span class="metric-icon amber" data-icon="clock"></span><div><small>Требуют актуализации</small><strong>12</strong><span>4 просрочены</span></div></article>
+            <article><span class="metric-icon violet" data-icon="history"></span><div><small>Действий за неделю</small><strong>46</strong><span>обновления и звонки</span></div></article>
+          </div>
+
+          <section class="team-panel">
+            <div class="team-toolbar">
+              <label class="team-search"><span data-icon="search"></span><input id="teamSearch" type="search" placeholder="Имя, телефон или должность" /></label>
+              <select id="teamRoleFilter" aria-label="Роль сотрудника"><option value="all">Все роли</option><option value="Руководитель">Руководители</option><option value="Администратор">Администраторы</option><option value="Риелтор">Риелторы</option></select>
+              <select id="teamStatusFilter" aria-label="Статус сотрудника"><option value="all">Все статусы</option><option value="active">Активные</option><option value="invited">Приглашённые</option><option value="disabled">Отключённые</option></select>
+              <button class="clear-button" id="clearTeamFilters">Сбросить</button>
+            </div>
+            <div class="team-list-head"><span>Сотрудник</span><span>Роль</span><span>Объекты</span><span>Актуализация</span><span>Последняя активность</span><span>Статус</span><span></span></div>
+            <div class="team-list" id="teamList"></div>
+            <div class="empty-state hidden" id="teamEmptyState"><span data-icon="users"></span><h3>Сотрудники не найдены</h3><p>Измените фильтры или поисковый запрос.</p><button id="resetTeamEmpty">Сбросить фильтры</button></div>
+          </section>
+
+          <section class="role-overview">
+            <div class="panel-heading"><div><h2>Роли и основные права</h2><p>Предварительная модель до утверждения полной матрицы доступа</p></div><button id="openRoleSettings">Настроить права</button></div>
+            <div class="role-overview-grid">
+              <article><span class="role-symbol">Р</span><div><h3>Риелтор</h3><p>Видит общую базу, создаёт объекты, актуализирует данные, делает подборки и работает с публикациями.</p></div><strong>7</strong></article>
+              <article><span class="role-symbol admin">А</span><div><h3>Администратор</h3><p>Управляет сотрудниками и справочниками, меняет ответственных, видит архив и системные настройки.</p></div><strong>2</strong></article>
+              <article><span class="role-symbol lead">РК</span><div><h3>Руководитель</h3><p>Контролирует всю базу и команду, меняет ответственных и принимает решения по рабочим правилам.</p></div><strong>1</strong></article>
+            </div>
+          </section>
+        </section>
+
         <section class="content app-view" id="sectionPlaceholder" hidden>
           <div class="page-heading placeholder-heading"><div><p class="eyebrow">Раздел базы</p><h1 id="placeholderTitle">Подборки</h1><p id="placeholderDescription">Рабочий раздел появится в следующей итерации прототипа.</p></div></div>
           <div class="section-preview-panel">
@@ -498,6 +533,27 @@
         <div class="publication-readiness"><span data-icon="check"></span><div><strong>Объекты готовы к отправке</strong><small>Обязательные поля и фотографии заполнены</small></div></div>
       </div>
       <div class="modal-actions"><button type="button" class="secondary-button modal-close">Отмена</button><button type="button" class="primary-button" id="confirmPublicationButton"><span data-icon="send"></span>Поставить в очередь</button></div>
+    </div>
+
+    <div class="modal team-member-modal" id="teamMemberModal" aria-hidden="true">
+      <div class="modal-head"><div><p class="eyebrow" id="teamModalEyebrow">Новый сотрудник</p><h2 id="teamModalTitle">Добавить в команду</h2><span>Профиль сотрудника и доступ к рабочей базе.</span></div><button class="icon-button modal-close" aria-label="Закрыть"><span data-icon="close"></span></button></div>
+      <form id="teamMemberForm">
+        <div class="team-member-form-grid">
+          <label>Имя и фамилия *<input id="teamMemberName" required placeholder="Например, Ольга Марченко" /></label>
+          <label>Роль *<select id="teamMemberRole"><option>Риелтор</option><option>Администратор</option><option>Руководитель</option></select></label>
+          <label>Рабочий телефон<input id="teamMemberPhone" type="tel" placeholder="+380 00 000 00 00" /></label>
+          <label>Электронная почта *<input id="teamMemberEmail" type="email" required placeholder="name@agency.ua" /></label>
+          <label class="wide">Должность<input id="teamMemberPosition" placeholder="Риелтор по жилой недвижимости" /></label>
+        </div>
+        <div class="team-access-note"><span data-icon="info"></span><div><strong>Общая база доступна всем риелторам</strong><small>Роль ограничивает управление сотрудниками, смену ответственных и системные настройки.</small></div></div>
+        <div class="modal-actions"><button type="button" class="secondary-button modal-close">Отмена</button><button type="submit" class="primary-button" id="saveTeamMemberButton">Отправить приглашение</button></div>
+      </form>
+    </div>
+
+    <div class="modal role-settings-modal" id="roleSettingsModal" aria-hidden="true">
+      <div class="modal-head"><div><p class="eyebrow">Права доступа</p><h2>Матрица ролей</h2><span>Рабочая схема для согласования перед техническим заданием.</span></div><button class="icon-button modal-close" aria-label="Закрыть"><span data-icon="close"></span></button></div>
+      <div class="role-matrix"><div class="role-matrix-head"><span>Действие</span><span>Риелтор</span><span>Руководитель</span><span>Администратор</span></div><div><strong>Просмотр общей базы и контактов</strong><span data-icon="check"></span><span data-icon="check"></span><span data-icon="check"></span></div><div><strong>Актуализация чужого объекта</strong><span data-icon="check"></span><span data-icon="check"></span><span data-icon="check"></span></div><div><strong>Смена ответственного риелтора</strong><span class="matrix-dash">—</span><span data-icon="check"></span><span data-icon="check"></span></div><div><strong>Управление сотрудниками</strong><span class="matrix-dash">—</span><span data-icon="check"></span><span data-icon="check"></span></div><div><strong>Окончательное удаление</strong><span class="matrix-dash">—</span><span class="matrix-dash">—</span><span data-icon="check"></span></div></div>
+      <div class="modal-actions"><button type="button" class="secondary-button modal-close">Закрыть</button><button type="button" class="primary-button" id="saveRoleSettings">Сохранить схему</button></div>
     </div>
 
     <div class="modal client-preview-modal" id="clientPreviewModal" aria-hidden="true">
