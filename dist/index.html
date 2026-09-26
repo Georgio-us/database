@@ -221,6 +221,40 @@
           </section>
         </section>
 
+        <section class="content app-view" id="publicationsView" data-app-view="Публикации" hidden>
+          <div class="page-heading publications-heading">
+            <div><p class="eyebrow">Внешние площадки</p><div class="title-row"><h1>Публикации</h1><span class="count-badge" id="publicationCountBadge">86</span></div><p>Состояние объявлений агентства на OLX и DIM.RIA.</p></div>
+            <button class="primary-button" id="publishObjectsButton"><span data-icon="send"></span>Опубликовать объекты</button>
+          </div>
+
+          <div class="portal-account-grid">
+            <article class="portal-account-card"><span class="portal portal-large olx">olx</span><div><span class="connection-state"><i></i>Подключено</span><h2>OLX</h2><p>Корпоративный аккаунт агентства</p></div><div class="portal-account-stats"><span><strong>46</strong><small>опубликовано</small></span><span><strong>2</strong><small>требуют внимания</small></span></div><button class="portal-settings-button" data-portal-settings="OLX"><span data-icon="settings"></span>Настройки</button></article>
+            <article class="portal-account-card"><span class="portal portal-large ria">RIA</span><div><span class="connection-state"><i></i>Подключено</span><h2>DIM.RIA</h2><p>Корпоративный кабинет агентства</p></div><div class="portal-account-stats"><span><strong>33</strong><small>опубликовано</small></span><span><strong>3</strong><small>ждут обновления</small></span></div><button class="portal-settings-button" data-portal-settings="DIM.RIA"><span data-icon="settings"></span>Настройки</button></article>
+          </div>
+
+          <div class="publication-metrics" aria-label="Сводка публикаций">
+            <button class="active" data-publication-filter="all"><span>Все объявления</span><strong>86</strong></button>
+            <button data-publication-filter="published"><span>Опубликованы</span><strong>79</strong></button>
+            <button data-publication-filter="update"><span>Ждут обновления</span><strong>3</strong></button>
+            <button data-publication-filter="error"><span>С ошибкой</span><strong>3</strong></button>
+            <button data-publication-filter="draft"><span>Не опубликованы</span><strong>7</strong></button>
+          </div>
+
+          <section class="publication-panel">
+            <div class="publication-toolbar">
+              <label class="publication-search"><span data-icon="search"></span><input id="publicationSearch" type="search" placeholder="Адрес или ID объекта" /></label>
+              <select id="publicationPortalFilter" aria-label="Площадка"><option value="all">Все площадки</option><option value="olx">OLX</option><option value="ria">DIM.RIA</option></select>
+              <select id="publicationAgentFilter" aria-label="Ответственный"><option value="all">Все риелторы</option><option value="Анна Коваль">Анна Коваль</option><option value="Игорь Мельник">Игорь Мельник</option><option value="Николай Савчук">Николай Савчук</option></select>
+              <button class="clear-button" id="clearPublicationFilters">Сбросить</button>
+            </div>
+            <div class="publication-list-summary"><label class="publication-select-all"><input type="checkbox" id="selectAllPublications" /><span></span><strong id="publicationResultCount">8 объектов</strong></label><span>Последняя синхронизация сегодня в 12:46</span></div>
+            <div class="publication-bulk-bar" id="publicationBulkBar"><strong><span id="publicationSelectedCount">0</span> выбрано</strong><button data-publication-bulk="publish"><span data-icon="send"></span>Опубликовать</button><button data-publication-bulk="refresh"><span data-icon="history"></span>Обновить</button><button data-publication-bulk="remove"><span data-icon="archive"></span>Снять с площадок</button><button id="clearPublicationSelection" aria-label="Снять выделение"><span data-icon="close"></span></button></div>
+            <div class="publication-list-head"><span></span><span>Объект</span><span>OLX</span><span>DIM.RIA</span><span>Изменения</span><span>Ответственный</span><span></span></div>
+            <div class="publication-list" id="publicationList"></div>
+            <div class="empty-state hidden" id="publicationEmptyState"><span data-icon="search"></span><h3>Публикации не найдены</h3><p>Измените фильтр или поисковый запрос.</p><button id="resetPublicationEmpty">Сбросить фильтры</button></div>
+          </section>
+        </section>
+
         <section class="content app-view" id="sectionPlaceholder" hidden>
           <div class="page-heading placeholder-heading"><div><p class="eyebrow">Раздел базы</p><h1 id="placeholderTitle">Подборки</h1><p id="placeholderDescription">Рабочий раздел появится в следующей итерации прототипа.</p></div></div>
           <div class="section-preview-panel">
@@ -454,6 +488,16 @@
         <div class="selection-property-list" id="selectionPropertyList"></div>
         <div class="modal-actions"><button type="button" class="secondary-button modal-close">Отмена</button><button type="submit" class="primary-button">Создать подборку</button></div>
       </form>
+    </div>
+
+    <div class="modal publication-modal" id="publicationModal" aria-hidden="true">
+      <div class="modal-head"><div><p class="eyebrow">Новая публикация</p><h2>Отправить объекты на площадки</h2><span>Проверьте площадки и данные объявления перед постановкой в очередь.</span></div><button class="icon-button modal-close" aria-label="Закрыть"><span data-icon="close"></span></button></div>
+      <div class="publication-modal-body">
+        <div class="publication-modal-section"><strong>Площадки</strong><div class="portal-choice-grid"><label><input type="checkbox" checked value="OLX" /><span class="portal olx">olx</span><span><b>OLX</b><small>Корпоративный аккаунт</small></span><i data-icon="check"></i></label><label><input type="checkbox" checked value="DIM.RIA" /><span class="portal ria">RIA</span><span><b>DIM.RIA</b><small>Корпоративный кабинет</small></span><i data-icon="check"></i></label></div></div>
+        <div class="publication-modal-section"><div class="publication-modal-title"><strong>Объекты</strong><span id="publicationModalCount">3 выбрано</span></div><div class="publication-modal-objects" id="publicationModalObjects"></div></div>
+        <div class="publication-readiness"><span data-icon="check"></span><div><strong>Объекты готовы к отправке</strong><small>Обязательные поля и фотографии заполнены</small></div></div>
+      </div>
+      <div class="modal-actions"><button type="button" class="secondary-button modal-close">Отмена</button><button type="button" class="primary-button" id="confirmPublicationButton"><span data-icon="send"></span>Поставить в очередь</button></div>
     </div>
 
     <div class="modal client-preview-modal" id="clientPreviewModal" aria-hidden="true">

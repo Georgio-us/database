@@ -83,7 +83,18 @@ const importPreview = [
   { row:6, object:'Коммерция · Большая Арнаутская, 22', contact:'Сергей · +380 99 267 38 16', price:'$220 000', status:'ready', label:'Готово' }
 ];
 
-const state = { section:'Главная', view: 'grid', status: 'all', tab: 'all', search: '', type: 'all', district: 'all', rooms: 'all', selectionFilter:'all', selectionSearch:'', importHistoryFilter:'all', selected: new Set(), activePropertyId: null, activeSelectionId:null, newPhotos: [], newDocuments: [], existingPhotoCount:0, objectFormMode:'create', editingPropertyId:null };
+const publications = [
+  { propertyId:'OD-204', olx:'published', ria:'update', changed:'Цена изменена сегодня', updated:'сегодня, 12:46' },
+  { propertyId:'OD-198', olx:'published', ria:'published', changed:'Без изменений', updated:'вчера, 18:20' },
+  { propertyId:'OD-193', olx:'draft', ria:'draft', changed:'Не отправлялся', updated:'—' },
+  { propertyId:'OD-187', olx:'published', ria:'error', changed:'Ошибка в описании', updated:'сегодня, 10:14' },
+  { propertyId:'OD-181', olx:'draft', ria:'draft', changed:'Не отправлялся', updated:'—' },
+  { propertyId:'OD-176', olx:'error', ria:'published', changed:'Не принята категория', updated:'вчера, 16:08' },
+  { propertyId:'OD-169', olx:'draft', ria:'draft', changed:'Черновик объекта', updated:'—' },
+  { propertyId:'OD-161', olx:'published', ria:'error', changed:'Не хватает фотографий', updated:'20 сентября, 09:41' }
+];
+
+const state = { section:'Главная', view: 'grid', status: 'all', tab: 'all', search: '', type: 'all', district: 'all', rooms: 'all', selectionFilter:'all', selectionSearch:'', importHistoryFilter:'all', publicationFilter:'all', publicationSearch:'', publicationPortal:'all', publicationAgent:'all', selected: new Set(), publicationSelected:new Set(), activePropertyId: null, activeSelectionId:null, newPhotos: [], newDocuments: [], existingPhotoCount:0, objectFormMode:'create', editingPropertyId:null };
 const importState = { step:1, file:null, fileName:'', completed:false };
 const grid = document.getElementById('propertyGrid');
 const emptyState = document.getElementById('emptyState');
@@ -338,6 +349,90 @@ function downloadTextFile(filename, content, type='text/csv;charset=utf-8') {
   URL.revokeObjectURL(url);
 }
 
+function publicationStatus(status) {
+  const copy = {
+    published:['Опубликовано','published'],
+    update:['Обновить','update'],
+    error:['Ошибка','error'],
+    draft:['Не опубликовано','draft']
+  };
+  const [label, className] = copy[status] || copy.draft;
+  return `<span class="portal-publication-status ${className}"><i></i>${label}</span>`;
+}
+
+function filteredPublications() {
+  const query = state.publicationSearch.trim().toLocaleLowerCase('ru');
+  return publications.filter((item) => {
+    const property = properties.find((entry) => entry.id === item.propertyId);
+    if (!property) return false;
+    const searchMatch = !query || `${property.id} ${property.address} ${property.type}`.toLocaleLowerCase('ru').includes(query);
+    const agentMatch = state.publicationAgent === 'all' || property.agent === state.publicationAgent;
+    const portalMatch = state.publicationPortal === 'all' || item[state.publicationPortal] !== 'draft';
+    const statusMatch = state.publicationFilter === 'all'
+      || (state.publicationFilter === 'draft' ? item.olx === 'draft' && item.ria === 'draft' : item.olx === state.publicationFilter || item.ria === state.publicationFilter);
+    return searchMatch && agentMatch && portalMatch && statusMatch;
+  });
+}
+
+function publicationRowTemplate(item) {
+  const property = properties.find((entry) => entry.id === item.propertyId);
+  const hasIssue = item.olx === 'error' || item.ria === 'error';
+  return `<article class="publication-list-row ${state.publicationSelected.has(item.propertyId) ? 'selected' : ''}" data-publication-id="${item.propertyId}">
+    <label class="publication-check" aria-label="Выбрать ${item.propertyId}"><input type="checkbox" ${state.publicationSelected.has(item.propertyId) ? 'checked' : ''}/><span></span></label>
+    <button class="publication-object" data-open-publication-object="${item.propertyId}"><i style="background-image:url('${property.image}')"></i><span><strong>${escapeHTML(property.address)}</strong><small>${property.type} · ${property.id} · ${property.price}</small></span></button>
+    <div>${publicationStatus(item.olx)}</div><div>${publicationStatus(item.ria)}</div>
+    <div class="publication-change ${hasIssue ? 'has-error' : ''}"><strong>${escapeHTML(item.changed)}</strong><small>${escapeHTML(item.updated)}</small></div>
+    <div class="publication-agent"><span class="agent-avatar">${property.initials}</span><span>${escapeHTML(property.agent)}</span></div>
+    <button class="publication-row-action" data-publication-action="${item.propertyId}" aria-label="Действия с публикацией">${icon('more')}</button>
+  </article>`;
+}
+
+function updatePublicationBulkBar() {
+  const count = state.publicationSelected.size;
+  document.getElementById('publicationSelectedCount').textContent = count;
+  document.getElementById('publicationBulkBar').classList.toggle('visible', count > 0);
+  document.getElementById('selectAllPublications').checked = filteredPublications().length > 0 && filteredPublications().every((item) => state.publicationSelected.has(item.propertyId));
+}
+
+function renderPublications() {
+  const list = filteredPublications();
+  document.getElementById('publicationCountBadge').textContent = '86';
+  document.getElementById('publicationResultCount').textContent = `${list.length} ${list.length === 1 ? 'объект' : list.length < 5 ? 'объекта' : 'объектов'}`;
+  document.getElementById('publicationList').innerHTML = list.map(publicationRowTemplate).join('');
+  document.getElementById('publicationList').hidden = !list.length;
+  document.getElementById('publicationEmptyState').classList.toggle('hidden', Boolean(list.length));
+  document.querySelectorAll('[data-publication-id] .publication-check input').forEach((input) => input.addEventListener('change', (event) => {
+    const id = event.target.closest('[data-publication-id]').dataset.publicationId;
+    event.target.checked ? state.publicationSelected.add(id) : state.publicationSelected.delete(id);
+    renderPublications();
+  }));
+  document.querySelectorAll('[data-open-publication-object]').forEach((button) => button.addEventListener('click', () => openDrawer(button.dataset.openPublicationObject)));
+  document.querySelectorAll('[data-publication-action]').forEach((button) => button.addEventListener('click', () => {
+    state.publicationSelected = new Set([button.dataset.publicationAction]);
+    openPublicationModal();
+  }));
+  updatePublicationBulkBar();
+}
+
+function openPublicationModal(ids = state.publicationSelected) {
+  const selectedIds = ids.size ? [...ids] : ['OD-204','OD-198','OD-193'];
+  document.getElementById('publicationModalCount').textContent = `${selectedIds.length} ${selectedIds.length === 1 ? 'выбран' : 'выбрано'}`;
+  document.getElementById('publicationModalObjects').innerHTML = selectedIds.map((id) => {
+    const property = properties.find((item) => item.id === id);
+    return property ? `<div><i style="background-image:url('${property.image}')"></i><span><strong>${escapeHTML(property.address)}</strong><small>${property.type} · ${property.id}</small></span><b>${property.price}</b></div>` : '';
+  }).join('');
+  openModal(publicationModal);
+}
+
+function resetPublicationFilters() {
+  Object.assign(state, { publicationFilter:'all', publicationSearch:'', publicationPortal:'all', publicationAgent:'all' });
+  document.getElementById('publicationSearch').value = '';
+  document.getElementById('publicationPortalFilter').value = 'all';
+  document.getElementById('publicationAgentFilter').value = 'all';
+  document.querySelectorAll('[data-publication-filter]').forEach((button) => button.classList.toggle('active', button.dataset.publicationFilter === 'all'));
+  renderPublications();
+}
+
 function updateSelectionPickedCount() {
   const count = document.querySelectorAll('#selectionPropertyList input:checked').length;
   document.getElementById('selectionPickedCount').textContent = `${count} выбрано`;
@@ -444,6 +539,7 @@ const drawer = document.getElementById('detailDrawer');
 const addModal = document.getElementById('addModal');
 const importModal = document.getElementById('importModal');
 const selectionModal = document.getElementById('selectionModal');
+const publicationModal = document.getElementById('publicationModal');
 const clientPreviewModal = document.getElementById('clientPreviewModal');
 
 function showOverlay() { overlay.classList.add('visible'); document.body.style.overflow = 'hidden'; }
@@ -908,7 +1004,7 @@ document.getElementById('editCommentButton').addEventListener('click', () => ope
 
 document.getElementById('addToSelectionButton').addEventListener('click', () => openSelectionModal(new Set([state.activePropertyId])));
 document.getElementById('updateRiaButton').addEventListener('click', () => showToast('Обновление DIM.RIA поставлено в очередь'));
-document.getElementById('publicationSettingsButton').addEventListener('click', () => showToast('Настройки публикаций будут отдельным экраном'));
+document.getElementById('publicationSettingsButton').addEventListener('click', () => { closeLayers(); showAppSection('Публикации'); });
 document.getElementById('changeAgentButton').addEventListener('click', () => showToast('Ответственного может сменить руководитель'));
 document.getElementById('addDocumentButton').addEventListener('click', () => showToast('Документ отмечен в карточке объекта'));
 document.getElementById('editOwnerButton').addEventListener('click', () => openFullEditForm('contact'));
@@ -933,6 +1029,8 @@ function showAppSection(section) {
         ? document.getElementById('selectionsView')
         : section === 'Импорт'
           ? document.getElementById('importView')
+          : section === 'Публикации'
+            ? document.getElementById('publicationsView')
         : document.getElementById('sectionPlaceholder');
   target.hidden = false;
   target.classList.add('active');
@@ -949,6 +1047,7 @@ function showAppSection(section) {
   document.title = `Estate Base — ${section}`;
   if (section === 'Подборки') renderSelections();
   if (section === 'Импорт') renderImportHistory();
+  if (section === 'Публикации') renderPublications();
   document.getElementById('sidebar').classList.remove('open');
   if (window.innerWidth <= 700) { overlay.classList.remove('visible'); document.body.style.overflow = ''; }
   window.scrollTo({ top:0, behavior:'smooth' });
@@ -983,6 +1082,40 @@ document.getElementById('importNextButton').addEventListener('click', () => {
 });
 document.getElementById('downloadImportTemplate').addEventListener('click', () => downloadTextFile('import-template.csv', 'Адрес,Тип,Комнаты,Площадь,Цена,Телефон,Имя,Район\n'));
 document.getElementById('downloadImportReport').addEventListener('click', () => downloadTextFile('import-report.csv', 'Строка,Статус,Комментарий\n3,Дубль,Совпадает адрес и телефон\n5,Ошибка,Не указан телефон\n'));
+document.getElementById('publishObjectsButton').addEventListener('click', () => openPublicationModal());
+document.querySelectorAll('[data-publication-filter]').forEach((button) => button.addEventListener('click', () => {
+  state.publicationFilter = button.dataset.publicationFilter;
+  document.querySelectorAll('[data-publication-filter]').forEach((item) => item.classList.toggle('active', item === button));
+  renderPublications();
+}));
+document.getElementById('publicationSearch').addEventListener('input', (event) => { state.publicationSearch = event.target.value; renderPublications(); });
+document.getElementById('publicationPortalFilter').addEventListener('change', (event) => { state.publicationPortal = event.target.value; renderPublications(); });
+document.getElementById('publicationAgentFilter').addEventListener('change', (event) => { state.publicationAgent = event.target.value; renderPublications(); });
+document.getElementById('clearPublicationFilters').addEventListener('click', resetPublicationFilters);
+document.getElementById('resetPublicationEmpty').addEventListener('click', resetPublicationFilters);
+document.getElementById('selectAllPublications').addEventListener('change', (event) => {
+  filteredPublications().forEach((item) => event.target.checked ? state.publicationSelected.add(item.propertyId) : state.publicationSelected.delete(item.propertyId));
+  renderPublications();
+});
+document.getElementById('clearPublicationSelection').addEventListener('click', () => { state.publicationSelected.clear(); renderPublications(); });
+document.querySelectorAll('[data-publication-bulk]').forEach((button) => button.addEventListener('click', () => {
+  if (button.dataset.publicationBulk === 'publish') { openPublicationModal(); return; }
+  const labels = { refresh:'Обновление поставлено в очередь', remove:'Объявления подготовлены к снятию' };
+  showToast(`${labels[button.dataset.publicationBulk]}: ${state.publicationSelected.size}`);
+  state.publicationSelected.clear();
+  renderPublications();
+}));
+document.querySelectorAll('[data-portal-settings]').forEach((button) => button.addEventListener('click', () => showToast(`${button.dataset.portalSettings}: настройки подключения открыты`)));
+document.getElementById('confirmPublicationButton').addEventListener('click', () => {
+  const portals = [...document.querySelectorAll('.portal-choice-grid input:checked')].map((input) => input.value);
+  if (!portals.length) { showToast('Выберите хотя бы одну площадку'); return; }
+  const count = Number(document.getElementById('publicationModalCount').textContent.match(/\d+/)?.[0] || 0);
+  closeLayers();
+  const objectWord = count === 1 ? 'объект' : count < 5 ? 'объекта' : 'объектов';
+  showToast(`${count} ${objectWord} ${count === 1 ? 'поставлен' : 'поставлены'} в очередь: ${portals.join(' и ')}`);
+  state.publicationSelected.clear();
+  renderPublications();
+});
 document.getElementById('newSelectionButton').addEventListener('click', () => openSelectionModal(new Set()));
 document.querySelectorAll('[data-selection-filter]').forEach((button) => button.addEventListener('click', () => {
   state.selectionFilter = button.dataset.selectionFilter;
