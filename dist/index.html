@@ -202,6 +202,25 @@
           </section>
         </section>
 
+        <section class="content app-view" id="importView" data-app-view="Импорт" hidden>
+          <div class="page-heading import-page-heading">
+            <div><p class="eyebrow">Наполнение базы</p><div class="title-row"><h1>Импорт объектов</h1><span class="count-badge" id="importCountBadge">4</span></div><p>Загрузка Excel и CSV с проверкой строк, сопоставлением колонок и поиском дублей.</p></div>
+            <button class="primary-button" id="newImportButton"><span data-icon="upload"></span>Новый импорт</button>
+          </div>
+
+          <div class="import-metrics">
+            <div><small>Загружено объектов</small><strong id="importedTotal">186</strong><span>за последние 30 дней</span></div>
+            <div><small>Найдено дублей</small><strong id="duplicateTotal">7</strong><span>не добавлены повторно</span></div>
+            <div><small>Строк с ошибками</small><strong id="errorTotal">3</strong><span>можно исправить и повторить</span></div>
+          </div>
+
+          <section class="import-history-panel">
+            <div class="panel-heading"><div><h2>История импортов</h2><p>Последние загрузки и результат обработки файлов</p></div><select id="importHistoryFilter" aria-label="Фильтр истории"><option value="all">Все операции</option><option value="done">Завершённые</option><option value="issues">С ошибками</option></select></div>
+            <div class="import-history-head"><span>Файл</span><span>Результат</span><span>Сотрудник</span><span>Дата</span><span></span></div>
+            <div class="import-history-list" id="importHistoryList"></div>
+          </section>
+        </section>
+
         <section class="content app-view" id="sectionPlaceholder" hidden>
           <div class="page-heading placeholder-heading"><div><p class="eyebrow">Раздел базы</p><h1 id="placeholderTitle">Подборки</h1><p id="placeholderDescription">Рабочий раздел появится в следующей итерации прототипа.</p></div></div>
           <div class="section-preview-panel">
@@ -380,10 +399,51 @@
       </form>
     </div>
 
-    <div class="modal import-modal" id="importModal" aria-hidden="true">
-      <div class="modal-head"><div><p class="eyebrow">Импорт данных</p><h2>Загрузить Excel или CSV</h2><span>Сначала покажем строки и предложим сопоставить колонки.</span></div><button class="icon-button modal-close" aria-label="Закрыть"><span data-icon="close"></span></button></div>
-      <div class="dropzone"><span class="drop-icon" data-icon="upload"></span><strong>Перетащите таблицу сюда</strong><p>XLSX, XLS или CSV · до 25 МБ</p><button class="secondary-button">Выбрать файл</button></div>
-      <div class="recent-import"><span data-icon="file"></span><div><strong>objects_september.xlsx</strong><small>24 объекта · импортирован 16 сентября</small></div><span class="status-badge active">Готово</span></div>
+    <div class="modal import-modal import-wizard-modal" id="importModal" aria-hidden="true">
+      <div class="modal-head import-wizard-head"><div><p class="eyebrow">Импорт объектов</p><h2 id="importWizardTitle">Выберите файл</h2><span id="importWizardSubtitle">Поддерживаются XLSX, XLS и CSV размером до 25 МБ</span></div><button class="icon-button modal-close" aria-label="Закрыть"><span data-icon="close"></span></button></div>
+      <div class="import-stepper" aria-label="Этапы импорта">
+        <button class="active" data-import-step-indicator="1"><span>1</span><small>Файл</small></button>
+        <i></i><button data-import-step-indicator="2"><span>2</span><small>Колонки</small></button>
+        <i></i><button data-import-step-indicator="3"><span>3</span><small>Проверка</small></button>
+        <i></i><button data-import-step-indicator="4"><span>4</span><small>Результат</small></button>
+      </div>
+
+      <div class="import-wizard-body">
+        <section class="import-step active" data-import-step="1">
+          <input id="importFileInput" type="file" accept=".xlsx,.xls,.csv" hidden />
+          <button type="button" class="dropzone import-dropzone" id="importDropzone">
+            <span class="drop-icon" data-icon="upload"></span><strong>Перетащите таблицу сюда</strong><p>XLSX, XLS или CSV · до 25 МБ</p><span class="secondary-button">Выбрать файл</span>
+          </button>
+          <div class="import-file-card" id="importFileCard" hidden><span class="file-kind">XLSX</span><div><strong id="importFileName">objects_september.xlsx</strong><small id="importFileMeta">86 КБ · файл готов к проверке</small></div><button type="button" id="replaceImportFile">Заменить</button></div>
+          <div class="import-template-row"><div><span data-icon="file"></span><span><strong>Нет готового файла</strong><small>Скачайте шаблон с названиями обязательных колонок</small></span></div><button type="button" id="downloadImportTemplate">Скачать шаблон</button></div>
+        </section>
+
+        <section class="import-step" data-import-step="2">
+          <div class="import-source-bar"><div><span data-icon="file"></span><span><strong id="mappingFileName">objects_september.xlsx</strong><small>Лист для импорта</small></span></div><select id="importSheetSelect"><option>Объекты</option><option>Лист 1</option></select></div>
+          <div class="mapping-summary"><div><strong>Сопоставление колонок</strong><span>Обязательные поля отмечены звёздочкой</span></div><span id="mappingProgress">8 из 8 сопоставлено</span></div>
+          <div class="mapping-table" id="mappingTable"></div>
+        </section>
+
+        <section class="import-step" data-import-step="3">
+          <div class="import-validation-summary">
+            <div class="success"><span data-icon="check"></span><span><strong>21</strong><small>готово к импорту</small></span></div>
+            <div class="warning"><span data-icon="users"></span><span><strong>2</strong><small>возможных дубля</small></span></div>
+            <div class="error"><span data-icon="info"></span><span><strong>1</strong><small>строка с ошибкой</small></span></div>
+          </div>
+          <div class="preview-toolbar"><div><strong>Предпросмотр данных</strong><span>Показаны первые строки файла</span></div><label><input type="checkbox" id="skipImportErrors" checked />Пропустить строки с ошибками</label></div>
+          <div class="import-preview-table"><div class="import-preview-head"><span>Строка</span><span>Объект</span><span>Контакт</span><span>Цена</span><span>Проверка</span></div><div id="importPreviewRows"></div></div>
+        </section>
+
+        <section class="import-step import-result-step" data-import-step="4">
+          <span class="result-icon" data-icon="check"></span>
+          <h3>Импорт завершён</h3>
+          <p><strong>21 объект</strong> добавлен в базу. Две повторяющиеся записи пропущены, одна строка сохранена в отчёте с ошибками</p>
+          <div class="import-result-stats"><span><strong>21</strong><small>добавлено</small></span><span><strong>2</strong><small>дубли</small></span><span><strong>1</strong><small>ошибка</small></span></div>
+          <button type="button" class="secondary-button" id="downloadImportReport"><span data-icon="file"></span>Скачать отчёт</button>
+        </section>
+      </div>
+
+      <div class="import-wizard-footer"><button type="button" class="secondary-button" id="importBackButton" disabled>Назад</button><span id="importWizardHint">Выберите файл, чтобы продолжить</span><button type="button" class="primary-button" id="importNextButton" disabled>Продолжить</button></div>
     </div>
 
     <div class="modal selection-modal" id="selectionModal" aria-hidden="true">

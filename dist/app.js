@@ -57,7 +57,34 @@ const selections = [
   { id:'SL-001', title:'Паркинг в Аркадии', client:'Дмитрий', propertyIds:['OD-161'], status:'draft', activity:'Не отправлена', views:0, agent:'Игорь Мельник', initials:'ИМ', note:'' }
 ];
 
-const state = { section:'Главная', view: 'grid', status: 'all', tab: 'all', search: '', type: 'all', district: 'all', rooms: 'all', selectionFilter:'all', selectionSearch:'', selected: new Set(), activePropertyId: null, activeSelectionId:null, newPhotos: [], newDocuments: [], existingPhotoCount:0, objectFormMode:'create', editingPropertyId:null };
+const importHistory = [
+  { file:'objects_september.xlsx', format:'XLSX', result:'24 объекта добавлено', details:'2 дубля пропущено', status:'done', agent:'Анна Коваль', initials:'АК', date:'16 сентября, 14:32' },
+  { file:'investors_12-09.csv', format:'CSV', result:'18 объектов добавлено', details:'без ошибок', status:'done', agent:'Игорь Мельник', initials:'ИМ', date:'12 сентября, 11:08' },
+  { file:'owners_base.xlsx', format:'XLSX', result:'9 объектов добавлено', details:'3 строки с ошибками', status:'issues', agent:'Николай Савчук', initials:'НС', date:'8 сентября, 17:45' },
+  { file:'commercial_august.xlsx', format:'XLSX', result:'31 объект добавлен', details:'5 дублей пропущено', status:'done', agent:'Анна Коваль', initials:'АК', date:'29 августа, 10:21' }
+];
+
+const importColumns = [
+  { source:'Адрес', target:'address', label:'Адрес *', example:'Генуэзская, 3Б' },
+  { source:'Тип', target:'type', label:'Тип недвижимости *', example:'Квартира' },
+  { source:'Комнаты', target:'rooms', label:'Количество комнат', example:'2' },
+  { source:'Площадь', target:'area', label:'Общая площадь *', example:'68' },
+  { source:'Цена', target:'price', label:'Цена *', example:'128000' },
+  { source:'Телефон', target:'phone', label:'Телефон собственника *', example:'+380674201844' },
+  { source:'Имя', target:'owner', label:'Имя собственника *', example:'Елена' },
+  { source:'Район', target:'district', label:'Административный район *', example:'Приморский' }
+];
+
+const importPreview = [
+  { row:2, object:'Квартира · Генуэзская, 3Б', contact:'Елена · +380 67 420 18 44', price:'$128 000', status:'ready', label:'Готово' },
+  { row:3, object:'Квартира · Каманина, 16А', contact:'Роман · +380 73 550 91 12', price:'$92 000', status:'duplicate', label:'Возможный дубль' },
+  { row:4, object:'Дом · Дача Ковалевского, 121', contact:'Марина · +380 50 318 72 40', price:'$295 000', status:'ready', label:'Готово' },
+  { row:5, object:'Квартира · Люстдорфская дорога, 55', contact:'Телефон не указан', price:'$67 500', status:'error', label:'Нет телефона' },
+  { row:6, object:'Коммерция · Большая Арнаутская, 22', contact:'Сергей · +380 99 267 38 16', price:'$220 000', status:'ready', label:'Готово' }
+];
+
+const state = { section:'Главная', view: 'grid', status: 'all', tab: 'all', search: '', type: 'all', district: 'all', rooms: 'all', selectionFilter:'all', selectionSearch:'', importHistoryFilter:'all', selected: new Set(), activePropertyId: null, activeSelectionId:null, newPhotos: [], newDocuments: [], existingPhotoCount:0, objectFormMode:'create', editingPropertyId:null };
+const importState = { step:1, file:null, fileName:'', completed:false };
 const grid = document.getElementById('propertyGrid');
 const emptyState = document.getElementById('emptyState');
 const bulkBar = document.getElementById('bulkBar');
@@ -175,6 +202,140 @@ function renderSelections() {
   list.innerHTML = items.length ? items.map(selectionRowTemplate).join('') : '<div class="selection-empty"><strong>Подборки не найдены</strong><p>Измените фильтр или создайте новую подборку.</p></div>';
   list.querySelectorAll('[data-selection-preview]').forEach((button) => button.addEventListener('click', () => openClientPreview(button.dataset.selectionPreview)));
   list.querySelectorAll('[data-selection-copy]').forEach((button) => button.addEventListener('click', () => copySelectionLink(button.dataset.selectionCopy)));
+}
+
+function importHistoryRowTemplate(item) {
+  const statusClass = item.status === 'done' ? 'active' : 'attention';
+  const statusLabel = item.status === 'done' ? 'Завершён' : 'Есть ошибки';
+  return `<article class="import-history-row">
+    <div class="import-history-file"><span class="file-kind">${item.format}</span><span><strong>${escapeHTML(item.file)}</strong><small>${statusLabel}</small></span></div>
+    <div class="import-history-result"><strong>${escapeHTML(item.result)}</strong><small>${escapeHTML(item.details)}</small></div>
+    <div class="import-history-agent"><span class="agent-avatar">${item.initials}</span>${escapeHTML(item.agent)}</div>
+    <time>${escapeHTML(item.date)}</time>
+    <button aria-label="Открыть детали импорта"><span class="status-badge ${statusClass}">${statusLabel}</span>${icon('chevron')}</button>
+  </article>`;
+}
+
+function renderImportHistory() {
+  const items = importHistory.filter((item) => state.importHistoryFilter === 'all' || item.status === state.importHistoryFilter);
+  document.getElementById('importCountBadge').textContent = importHistory.length;
+  document.getElementById('importHistoryList').innerHTML = items.length
+    ? items.map(importHistoryRowTemplate).join('')
+    : '<div class="selection-empty"><strong>Операции не найдены</strong><p>Измените фильтр истории импортов.</p></div>';
+}
+
+function renderImportMapping() {
+  const targetOptions = [
+    ['','Не импортировать'], ['address','Адрес'], ['type','Тип недвижимости'], ['rooms','Количество комнат'], ['area','Общая площадь'],
+    ['price','Цена'], ['phone','Телефон собственника'], ['owner','Имя собственника'], ['district','Административный район'], ['zone','Микрорайон'], ['comment','Комментарий']
+  ];
+  document.getElementById('mappingTable').innerHTML = `<div class="mapping-row mapping-head"><span>Колонка в файле</span><span>Пример значения</span><span>Поле в базе</span></div>${importColumns.map((column) => `<label class="mapping-row"><span><strong>${column.source}</strong><small>Колонка из таблицы</small></span><code>${escapeHTML(column.example)}</code><select data-mapping-source="${column.source}">${targetOptions.map(([value,label]) => `<option value="${value}" ${value === column.target ? 'selected' : ''}>${label}${value === column.target && column.label.endsWith('*') ? ' *' : ''}</option>`).join('')}</select></label>`).join('')}`;
+  document.querySelectorAll('[data-mapping-source]').forEach((select) => select.addEventListener('change', updateMappingProgress));
+  updateMappingProgress();
+}
+
+function updateMappingProgress() {
+  const selects = [...document.querySelectorAll('[data-mapping-source]')];
+  const mapped = selects.filter((select) => select.value).length;
+  document.getElementById('mappingProgress').textContent = `${mapped} из ${selects.length} сопоставлено`;
+  if (importState.step === 2) document.getElementById('importNextButton').disabled = mapped < 6;
+}
+
+function renderImportPreview() {
+  document.getElementById('importPreviewRows').innerHTML = importPreview.map((row) => `<div class="import-preview-row ${row.status}"><span>${row.row}</span><span><strong>${escapeHTML(row.object)}</strong><small>${row.status === 'duplicate' ? 'Совпадает адрес и телефон' : 'Данные из файла'}</small></span><span>${escapeHTML(row.contact)}</span><strong>${row.price}</strong><span class="validation-label ${row.status}">${row.label}</span></div>`).join('');
+}
+
+function updateImportWizard() {
+  const copy = {
+    1:['Выберите файл','Поддерживаются XLSX, XLS и CSV размером до 25 МБ'],
+    2:['Сопоставьте колонки','Проверьте, куда будут сохранены данные из таблицы'],
+    3:['Проверьте данные','Ошибки и возможные дубли отмечены до добавления в базу'],
+    4:['Результат импорта','Файл обработан, итог операции сохранён в истории']
+  };
+  document.getElementById('importWizardTitle').textContent = copy[importState.step][0];
+  document.getElementById('importWizardSubtitle').textContent = copy[importState.step][1];
+  document.querySelectorAll('[data-import-step]').forEach((section) => section.classList.toggle('active', Number(section.dataset.importStep) === importState.step));
+  document.querySelectorAll('[data-import-step-indicator]').forEach((button) => {
+    const step = Number(button.dataset.importStepIndicator);
+    button.classList.toggle('active', step === importState.step);
+    button.classList.toggle('complete', step < importState.step);
+  });
+  const backButton = document.getElementById('importBackButton');
+  const nextButton = document.getElementById('importNextButton');
+  const hint = document.getElementById('importWizardHint');
+  backButton.disabled = importState.step === 1 || importState.step === 4;
+  nextButton.textContent = importState.step === 3 ? 'Импортировать 21 объект' : importState.step === 4 ? 'Закрыть' : 'Продолжить';
+  if (importState.step === 1) {
+    nextButton.disabled = !importState.fileName;
+    hint.textContent = importState.fileName ? 'Файл выбран, можно перейти к сопоставлению' : 'Выберите файл, чтобы продолжить';
+  } else if (importState.step === 2) {
+    hint.textContent = 'Проверьте обязательные поля перед продолжением';
+    updateMappingProgress();
+  } else if (importState.step === 3) {
+    nextButton.disabled = false;
+    hint.textContent = 'Строки с ошибками не будут добавлены';
+  } else {
+    nextButton.disabled = false;
+    hint.textContent = 'Подробности доступны в истории импортов';
+  }
+}
+
+function resetImportWizard() {
+  importState.step = 1;
+  importState.file = null;
+  importState.fileName = '';
+  importState.completed = false;
+  document.getElementById('importFileInput').value = '';
+  document.getElementById('importFileCard').hidden = true;
+  document.getElementById('importDropzone').hidden = false;
+  renderImportMapping();
+  renderImportPreview();
+  updateImportWizard();
+}
+
+function openImportWizard() {
+  resetImportWizard();
+  openModal(importModal);
+}
+
+function selectImportFile(file) {
+  if (!file) return;
+  if (file.size > 25 * 1024 * 1024) { showToast('Файл больше 25 МБ'); return; }
+  const extension = (file.name.split('.').pop() || 'XLSX').toUpperCase();
+  if (!['XLSX','XLS','CSV'].includes(extension)) { showToast('Поддерживаются только XLSX, XLS и CSV'); return; }
+  importState.file = file;
+  importState.fileName = file.name;
+  document.getElementById('importFileName').textContent = file.name;
+  document.getElementById('mappingFileName').textContent = file.name;
+  document.querySelector('#importFileCard .file-kind').textContent = extension;
+  document.getElementById('importFileMeta').textContent = `${Math.max(1, Math.round(file.size / 1024))} КБ · файл готов к проверке`;
+  document.getElementById('importFileCard').hidden = false;
+  document.getElementById('importDropzone').hidden = true;
+  updateImportWizard();
+}
+
+function completeImport() {
+  if (!importState.completed) {
+    importHistory.unshift({ file:importState.fileName, format:(importState.fileName.split('.').pop() || 'XLSX').toUpperCase(), result:'21 объект добавлен', details:'2 дубля, 1 ошибка', status:'issues', agent:'Анна Коваль', initials:'АК', date:'только что' });
+    importState.completed = true;
+    document.getElementById('importedTotal').textContent = '207';
+    document.getElementById('duplicateTotal').textContent = '9';
+    document.getElementById('errorTotal').textContent = '4';
+    renderImportHistory();
+  }
+  importState.step = 4;
+  updateImportWizard();
+}
+
+function downloadTextFile(filename, content, type='text/csv;charset=utf-8') {
+  const url = URL.createObjectURL(new Blob([content], { type }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }
 
 function updateSelectionPickedCount() {
@@ -715,7 +876,7 @@ function updateExistingProperty(status) {
 
 document.getElementById('addButton').addEventListener('click', openCreateForm);
 document.getElementById('mobileAdd').addEventListener('click', openCreateForm);
-document.getElementById('importButton').addEventListener('click', () => openModal(importModal));
+document.getElementById('importButton').addEventListener('click', openImportWizard);
 document.getElementById('addForm').addEventListener('submit', (event) => {
   event.preventDefault();
   const status = document.getElementById('propertyInitialStatus').value;
@@ -770,6 +931,8 @@ function showAppSection(section) {
       ? document.getElementById('objectsView')
       : section === 'Подборки'
         ? document.getElementById('selectionsView')
+        : section === 'Импорт'
+          ? document.getElementById('importView')
         : document.getElementById('sectionPlaceholder');
   target.hidden = false;
   target.classList.add('active');
@@ -785,6 +948,7 @@ function showAppSection(section) {
   }
   document.title = `Estate Base — ${section}`;
   if (section === 'Подборки') renderSelections();
+  if (section === 'Импорт') renderImportHistory();
   document.getElementById('sidebar').classList.remove('open');
   if (window.innerWidth <= 700) { overlay.classList.remove('visible'); document.body.style.overflow = ''; }
   window.scrollTo({ top:0, behavior:'smooth' });
@@ -801,7 +965,24 @@ document.querySelectorAll('.nav-item, [data-navigate]').forEach((button) => butt
 document.querySelectorAll('[data-open-status]').forEach((button) => button.addEventListener('click', () => openObjectsByStatus(button.dataset.openStatus)));
 document.querySelectorAll('[data-open-property]').forEach((button) => button.addEventListener('click', () => { showAppSection('Объекты'); openDrawer(button.dataset.openProperty); }));
 document.querySelector('[data-dashboard-action="add"]').addEventListener('click', openCreateForm);
-document.querySelector('[data-dashboard-action="import"]').addEventListener('click', () => openModal(importModal));
+document.querySelector('[data-dashboard-action="import"]').addEventListener('click', openImportWizard);
+document.getElementById('newImportButton').addEventListener('click', openImportWizard);
+document.getElementById('importHistoryFilter').addEventListener('change', (event) => { state.importHistoryFilter = event.target.value; renderImportHistory(); });
+document.getElementById('importDropzone').addEventListener('click', () => document.getElementById('importFileInput').click());
+document.getElementById('replaceImportFile').addEventListener('click', () => document.getElementById('importFileInput').click());
+document.getElementById('importFileInput').addEventListener('change', (event) => selectImportFile(event.target.files[0]));
+document.getElementById('importDropzone').addEventListener('dragover', (event) => { event.preventDefault(); event.currentTarget.classList.add('dragging'); });
+document.getElementById('importDropzone').addEventListener('dragleave', (event) => event.currentTarget.classList.remove('dragging'));
+document.getElementById('importDropzone').addEventListener('drop', (event) => { event.preventDefault(); event.currentTarget.classList.remove('dragging'); selectImportFile(event.dataTransfer.files[0]); });
+document.getElementById('importBackButton').addEventListener('click', () => { if (importState.step > 1 && importState.step < 4) { importState.step -= 1; updateImportWizard(); } });
+document.getElementById('importNextButton').addEventListener('click', () => {
+  if (importState.step === 1 && importState.fileName) { importState.step = 2; updateImportWizard(); return; }
+  if (importState.step === 2) { importState.step = 3; updateImportWizard(); return; }
+  if (importState.step === 3) { completeImport(); showToast('Импорт завершён: 21 объект добавлен'); return; }
+  closeLayers(); showAppSection('Импорт');
+});
+document.getElementById('downloadImportTemplate').addEventListener('click', () => downloadTextFile('import-template.csv', 'Адрес,Тип,Комнаты,Площадь,Цена,Телефон,Имя,Район\n'));
+document.getElementById('downloadImportReport').addEventListener('click', () => downloadTextFile('import-report.csv', 'Строка,Статус,Комментарий\n3,Дубль,Совпадает адрес и телефон\n5,Ошибка,Не указан телефон\n'));
 document.getElementById('newSelectionButton').addEventListener('click', () => openSelectionModal(new Set()));
 document.querySelectorAll('[data-selection-filter]').forEach((button) => button.addEventListener('click', () => {
   state.selectionFilter = button.dataset.selectionFilter;
