@@ -290,6 +290,69 @@
           </section>
         </section>
 
+        <section class="content app-view" id="settingsView" data-app-view="Настройки" hidden>
+          <div class="page-heading settings-heading">
+            <div><p class="eyebrow">Управление</p><h1>Настройки</h1><p>Правила работы базы, справочники и параметры агентства.</p></div>
+          </div>
+          <div class="settings-layout">
+            <nav class="settings-nav" aria-label="Разделы настроек">
+              <button class="active" data-settings-tab="agency"><span data-icon="building"></span><span><strong>Агентство</strong><small>Название и контакты</small></span></button>
+              <button data-settings-tab="workflow"><span data-icon="clock"></span><span><strong>Актуализация</strong><small>Сроки и напоминания</small></span></button>
+              <button data-settings-tab="locations"><span data-icon="layers"></span><span><strong>Локации</strong><small>Районы и микрорайоны</small></span></button>
+              <button data-settings-tab="currency"><span data-icon="history"></span><span><strong>Валюты</strong><small>Курс НБУ</small></span></button>
+              <button data-settings-tab="public"><span data-icon="send"></span><span><strong>Публичные данные</strong><small>Подборки и контакты</small></span></button>
+              <button data-settings-tab="connections"><span data-icon="settings"></span><span><strong>Подключения</strong><small>OLX и DIM.RIA</small></span></button>
+            </nav>
+
+            <div class="settings-content">
+              <form class="settings-panel active" data-settings-panel="agency">
+                <div class="settings-panel-head"><div><h2>Данные агентства</h2><p>Используются во внутренних экранах и публичных подборках</p></div></div>
+                <div class="settings-form-grid"><label>Название агентства<input value="Estate Base Agency" /></label><label>Город<input value="Одесса" /></label><label>Рабочий телефон<input value="+380 48 700 00 00" /></label><label>Электронная почта<input type="email" value="office@estatebase.ua" /></label><label class="wide">Адрес офиса<input value="Одесса, ул. Генуэзская, 1" /></label></div>
+                <div class="settings-footer"><span>Изменения применятся к новым публичным материалам</span><button class="primary-button" type="submit">Сохранить</button></div>
+              </form>
+
+              <form class="settings-panel" data-settings-panel="workflow">
+                <div class="settings-panel-head"><div><h2>Актуализация объектов</h2><p>Напоминания помогают команде поддерживать базу в рабочем состоянии</p></div></div>
+                <div class="setting-block"><div><strong>Период подтверждения по умолчанию</strong><p>Для новых объектов. Риелтор увидит напоминание после выбранного срока.</p></div><div class="segmented-control"><label><input type="radio" name="verification-period" value="7" /><span>7 дней</span></label><label><input type="radio" name="verification-period" value="14" checked /><span>14 дней</span></label></div></div>
+                <div class="setting-block"><div><strong>Поведение после истечения срока</strong><p>По согласованной логике объект остаётся активным и не снимается с публикаций.</p></div><span class="setting-value">Только напоминание</span></div>
+                <div class="setting-block"><div><strong>Уведомлять ответственного</strong><p>Показывать задачу риелтору, который ведёт объект.</p></div><label class="switch"><input type="checkbox" checked /><span></span></label></div>
+                <div class="setting-block"><div><strong>Уведомлять руководителя о просроченных</strong><p>Отдельная сводка по объектам, срок которых уже прошёл.</p></div><label class="switch"><input type="checkbox" checked /><span></span></label></div>
+                <div class="settings-footer"><span>Параметры можно уточнить в техническом задании</span><button class="primary-button" type="submit">Сохранить</button></div>
+              </form>
+
+              <section class="settings-panel" data-settings-panel="locations">
+                <div class="settings-panel-head"><div><h2>Справочник локаций</h2><p>Три уровня: административный район, микрорайон и уточняющая подзона</p></div><button class="primary-button" id="addLocationButton"><span data-icon="plus"></span>Добавить локацию</button></div>
+                <div class="location-notice"><span data-icon="info"></span><div><strong>Структура готова, полный список требует проверки агентством</strong><small>Административный район обязателен. Микрорайон и подзона остаются необязательными.</small></div></div>
+                <div class="location-toolbar"><label><span data-icon="search"></span><input id="locationSearch" type="search" placeholder="Найти район или микрорайон" /></label><select id="locationDistrictFilter"><option value="all">Все районы</option><option>Приморский</option><option>Киевский</option><option>Хаджибейский</option><option>Пересыпский</option></select></div>
+                <div class="location-list-head"><span>Название</span><span>Уровень</span><span>Родительская локация</span><span>Объекты</span><span>Статус</span><span></span></div>
+                <div class="location-list" id="locationList"></div>
+              </section>
+
+              <form class="settings-panel" data-settings-panel="currency">
+                <div class="settings-panel-head"><div><h2>Валюты и курс</h2><p>Цена объекта хранится в исходной валюте и пересчитывается для отображения</p></div></div>
+                <div class="currency-current"><span class="currency-symbol">$</span><div><small>Официальный курс НБУ</small><strong>1 USD = 41,17 UAH</strong><span>Обновлено сегодня в 10:00</span></div><span class="status-badge active">Актуально</span></div>
+                <div class="settings-form-grid"><label>Источник курса<select><option>Национальный банк Украины</option></select></label><label>Время ежедневного обновления<input type="time" value="10:00" /></label><label>Основные валюты<select><option>USD и UAH</option></select></label><label>Валюта по умолчанию<select><option>USD</option><option>UAH</option></select></label></div>
+                <div class="settings-footer"><span>Реальное обновление начнёт работать после подключения API НБУ</span><button class="primary-button" type="submit">Сохранить</button></div>
+              </form>
+
+              <form class="settings-panel" data-settings-panel="public">
+                <div class="settings-panel-head"><div><h2>Публичные подборки</h2><p>Какие данные доступны клиенту по внешней ссылке</p></div></div>
+                <div class="setting-block locked"><div><strong>Скрывать номер квартиры</strong><p>Внутренний адрес не передаётся клиенту.</p></div><span class="setting-value">Всегда</span></div>
+                <div class="setting-block locked"><div><strong>Скрывать контакты собственника</strong><p>Клиент видит контакт ответственного риелтора.</p></div><span class="setting-value">Всегда</span></div>
+                <div class="setting-block locked"><div><strong>Скрывать документы и внутренние комментарии</strong><p>Приватные данные доступны только сотрудникам агентства.</p></div><span class="setting-value">Всегда</span></div>
+                <div class="setting-block"><div><strong>Фиксировать открытие подборки</strong><p>Показывать риелтору, что клиент перешёл по ссылке.</p></div><label class="switch"><input type="checkbox" checked /><span></span></label></div>
+                <div class="setting-block"><div><strong>Водяной знак на фотографиях</strong><p>Опциональная отметка агентства на публичных изображениях.</p></div><label class="switch"><input type="checkbox" /><span></span></label></div>
+                <div class="settings-footer"><span>Защищённые поля нельзя включить в публичную ссылку</span><button class="primary-button" type="submit">Сохранить</button></div>
+              </form>
+
+              <section class="settings-panel" data-settings-panel="connections">
+                <div class="settings-panel-head"><div><h2>Подключения площадок</h2><p>Один корпоративный аккаунт агентства для каждой площадки</p></div></div>
+                <div class="connection-list"><article><span class="portal portal-large olx">olx</span><div><h3>OLX</h3><p>Корпоративный аккаунт агентства</p><span class="connection-state"><i></i>Подключено</span></div><button class="secondary-button" data-connection-action="OLX">Параметры</button></article><article><span class="portal portal-large ria">RIA</span><div><h3>DIM.RIA</h3><p>Корпоративный кабинет агентства</p><span class="connection-state"><i></i>Подключено</span></div><button class="secondary-button" data-connection-action="DIM.RIA">Параметры</button></article><article class="future-connection"><span class="connection-placeholder" data-icon="building"></span><div><h3>Сайт агентства</h3><p>Подключается после появления сайта и согласования формата данных</p><span>Не входит в текущую настройку</span></div><button class="secondary-button" disabled>Позже</button></article></div>
+              </section>
+            </div>
+          </div>
+        </section>
+
         <section class="content app-view" id="sectionPlaceholder" hidden>
           <div class="page-heading placeholder-heading"><div><p class="eyebrow">Раздел базы</p><h1 id="placeholderTitle">Подборки</h1><p id="placeholderDescription">Рабочий раздел появится в следующей итерации прототипа.</p></div></div>
           <div class="section-preview-panel">
@@ -554,6 +617,11 @@
       <div class="modal-head"><div><p class="eyebrow">Права доступа</p><h2>Матрица ролей</h2><span>Рабочая схема для согласования перед техническим заданием.</span></div><button class="icon-button modal-close" aria-label="Закрыть"><span data-icon="close"></span></button></div>
       <div class="role-matrix"><div class="role-matrix-head"><span>Действие</span><span>Риелтор</span><span>Руководитель</span><span>Администратор</span></div><div><strong>Просмотр общей базы и контактов</strong><span data-icon="check"></span><span data-icon="check"></span><span data-icon="check"></span></div><div><strong>Актуализация чужого объекта</strong><span data-icon="check"></span><span data-icon="check"></span><span data-icon="check"></span></div><div><strong>Смена ответственного риелтора</strong><span class="matrix-dash">—</span><span data-icon="check"></span><span data-icon="check"></span></div><div><strong>Управление сотрудниками</strong><span class="matrix-dash">—</span><span data-icon="check"></span><span data-icon="check"></span></div><div><strong>Окончательное удаление</strong><span class="matrix-dash">—</span><span class="matrix-dash">—</span><span data-icon="check"></span></div></div>
       <div class="modal-actions"><button type="button" class="secondary-button modal-close">Закрыть</button><button type="button" class="primary-button" id="saveRoleSettings">Сохранить схему</button></div>
+    </div>
+
+    <div class="modal location-modal" id="locationModal" aria-hidden="true">
+      <div class="modal-head"><div><p class="eyebrow">Справочник локаций</p><h2>Добавить локацию</h2><span>Новые значения можно будет использовать в карточках и фильтрах.</span></div><button class="icon-button modal-close" aria-label="Закрыть"><span data-icon="close"></span></button></div>
+      <form id="locationForm"><div class="location-form-grid"><label>Название *<input id="locationName" required placeholder="Например, 6-я станция Фонтана" /></label><label>Уровень *<select id="locationLevel"><option value="zone">Микрорайон</option><option value="subzone">Подзона</option></select></label><label class="wide">Родительская локация *<select id="locationParent"><option>Приморский</option><option>Киевский</option><option>Хаджибейский</option><option>Пересыпский</option><option>Фонтан</option><option>Аркадия</option></select></label><label class="wide">Синонимы<input id="locationAliases" placeholder="Через запятую" /></label></div><div class="modal-actions"><button type="button" class="secondary-button modal-close">Отмена</button><button type="submit" class="primary-button">Добавить на проверку</button></div></form>
     </div>
 
     <div class="modal client-preview-modal" id="clientPreviewModal" aria-hidden="true">

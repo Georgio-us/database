@@ -107,7 +107,22 @@ const teamMembers = [
   { id:'TM-010', name:'Елена Ткаченко', initials:'ЕТ', role:'Риелтор', position:'Жилая недвижимость', phone:'+380 97 113 90 26', email:'elena@estatebase.ua', objects:0, attention:0, activity:'15 августа, 12:10', status:'disabled' }
 ];
 
-const state = { section:'Главная', view: 'grid', status: 'all', tab: 'all', search: '', type: 'all', district: 'all', rooms: 'all', selectionFilter:'all', selectionSearch:'', importHistoryFilter:'all', publicationFilter:'all', publicationSearch:'', publicationPortal:'all', publicationAgent:'all', teamSearch:'', teamRole:'all', teamStatus:'all', selected: new Set(), publicationSelected:new Set(), activePropertyId: null, activeSelectionId:null, activeTeamMemberId:null, newPhotos: [], newDocuments: [], existingPhotoCount:0, objectFormMode:'create', editingPropertyId:null };
+const locations = [
+  { id:'LOC-001', name:'Приморский', level:'district', parent:'—', objects:63, status:'active' },
+  { id:'LOC-002', name:'Киевский', level:'district', parent:'—', objects:47, status:'active' },
+  { id:'LOC-003', name:'Хаджибейский', level:'district', parent:'—', objects:25, status:'active' },
+  { id:'LOC-004', name:'Пересыпский', level:'district', parent:'—', objects:17, status:'active' },
+  { id:'LOC-005', name:'Аркадия', level:'zone', parent:'Приморский', objects:28, status:'active' },
+  { id:'LOC-006', name:'Фонтан', level:'zone', parent:'Приморский', objects:24, status:'active' },
+  { id:'LOC-007', name:'Молдаванка', level:'zone', parent:'Хаджибейский', objects:11, status:'active' },
+  { id:'LOC-008', name:'Черёмушки', level:'zone', parent:'Хаджибейский', objects:14, status:'active' },
+  { id:'LOC-009', name:'Таирова', level:'zone', parent:'Киевский', objects:31, status:'active' },
+  { id:'LOC-010', name:'Посёлок Котовского', level:'zone', parent:'Пересыпский', objects:13, status:'active' },
+  { id:'LOC-011', name:'5-я станция Фонтана', level:'subzone', parent:'Фонтан', objects:9, status:'active' },
+  { id:'LOC-012', name:'10-я станция Фонтана', level:'subzone', parent:'Фонтан', objects:6, status:'review' }
+];
+
+const state = { section:'Главная', view: 'grid', status: 'all', tab: 'all', search: '', type: 'all', district: 'all', rooms: 'all', selectionFilter:'all', selectionSearch:'', importHistoryFilter:'all', publicationFilter:'all', publicationSearch:'', publicationPortal:'all', publicationAgent:'all', teamSearch:'', teamRole:'all', teamStatus:'all', settingsTab:'agency', locationSearch:'', locationDistrict:'all', selected: new Set(), publicationSelected:new Set(), activePropertyId: null, activeSelectionId:null, activeTeamMemberId:null, newPhotos: [], newDocuments: [], existingPhotoCount:0, objectFormMode:'create', editingPropertyId:null };
 const importState = { step:1, file:null, fileName:'', completed:false };
 const grid = document.getElementById('propertyGrid');
 const emptyState = document.getElementById('emptyState');
@@ -510,6 +525,35 @@ function resetTeamFilters() {
   renderTeam();
 }
 
+function showSettingsPanel(tab) {
+  state.settingsTab = tab;
+  document.querySelectorAll('[data-settings-tab]').forEach((button) => button.classList.toggle('active', button.dataset.settingsTab === tab));
+  document.querySelectorAll('[data-settings-panel]').forEach((panel) => panel.classList.toggle('active', panel.dataset.settingsPanel === tab));
+}
+
+function locationDistrict(location) {
+  if (location.level === 'district') return location.name;
+  const parent = locations.find((item) => item.name === location.parent);
+  return parent ? locationDistrict(parent) : location.parent;
+}
+
+function filteredLocations() {
+  const query = state.locationSearch.trim().toLocaleLowerCase('ru');
+  return locations.filter((location) => (!query || `${location.name} ${location.parent}`.toLocaleLowerCase('ru').includes(query)) && (state.locationDistrict === 'all' || locationDistrict(location) === state.locationDistrict));
+}
+
+function renderLocations() {
+  const levelCopy = { district:'Административный район', zone:'Микрорайон', subzone:'Подзона' };
+  const rows = filteredLocations();
+  document.getElementById('locationList').innerHTML = rows.map((location) => `<article class="location-list-row"><div><span class="location-level-icon ${location.level}">${location.level === 'district' ? 'Р' : location.level === 'zone' ? 'М' : 'П'}</span><span><strong>${escapeHTML(location.name)}</strong><small>${location.id}</small></span></div><span>${levelCopy[location.level]}</span><span>${escapeHTML(location.parent)}</span><strong>${location.objects}</strong><span class="status-badge ${location.status === 'active' ? 'active' : 'attention'}">${location.status === 'active' ? 'Активна' : 'На проверке'}</span><button aria-label="Действия с локацией">${icon('more')}</button></article>`).join('');
+  if (!rows.length) document.getElementById('locationList').innerHTML = '<div class="settings-empty"><strong>Локации не найдены</strong><span>Измените поиск или район</span></div>';
+}
+
+function openLocationModal() {
+  document.getElementById('locationForm').reset();
+  openModal(locationModal);
+}
+
 function updateSelectionPickedCount() {
   const count = document.querySelectorAll('#selectionPropertyList input:checked').length;
   document.getElementById('selectionPickedCount').textContent = `${count} выбрано`;
@@ -619,6 +663,7 @@ const selectionModal = document.getElementById('selectionModal');
 const publicationModal = document.getElementById('publicationModal');
 const teamMemberModal = document.getElementById('teamMemberModal');
 const roleSettingsModal = document.getElementById('roleSettingsModal');
+const locationModal = document.getElementById('locationModal');
 const clientPreviewModal = document.getElementById('clientPreviewModal');
 
 function showOverlay() { overlay.classList.add('visible'); document.body.style.overflow = 'hidden'; }
@@ -1112,6 +1157,8 @@ function showAppSection(section) {
             ? document.getElementById('publicationsView')
             : section === 'Команда'
               ? document.getElementById('teamView')
+              : section === 'Настройки'
+                ? document.getElementById('settingsView')
         : document.getElementById('sectionPlaceholder');
   target.hidden = false;
   target.classList.add('active');
@@ -1130,6 +1177,7 @@ function showAppSection(section) {
   if (section === 'Импорт') renderImportHistory();
   if (section === 'Публикации') renderPublications();
   if (section === 'Команда') renderTeam();
+  if (section === 'Настройки') { showSettingsPanel(state.settingsTab); renderLocations(); }
   document.getElementById('sidebar').classList.remove('open');
   if (window.innerWidth <= 700) { overlay.classList.remove('visible'); document.body.style.overflow = ''; }
   window.scrollTo({ top:0, behavior:'smooth' });
@@ -1229,6 +1277,23 @@ document.getElementById('teamMemberForm').addEventListener('submit', (event) => 
   renderTeam();
   showToast(`Приглашение отправлено: ${formData.email}`);
 });
+document.querySelectorAll('[data-settings-tab]').forEach((button) => button.addEventListener('click', () => showSettingsPanel(button.dataset.settingsTab)));
+document.querySelectorAll('form.settings-panel').forEach((form) => form.addEventListener('submit', (event) => { event.preventDefault(); showToast('Настройки сохранены в прототипе'); }));
+document.getElementById('addLocationButton').addEventListener('click', openLocationModal);
+document.getElementById('locationSearch').addEventListener('input', (event) => { state.locationSearch = event.target.value; renderLocations(); });
+document.getElementById('locationDistrictFilter').addEventListener('change', (event) => { state.locationDistrict = event.target.value; renderLocations(); });
+document.getElementById('locationForm').addEventListener('submit', (event) => {
+  event.preventDefault();
+  const name = document.getElementById('locationName').value.trim();
+  const level = document.getElementById('locationLevel').value;
+  const parent = document.getElementById('locationParent').value;
+  const nextId = Math.max(...locations.map((item) => Number(item.id.replace(/\D/g,'')))) + 1;
+  locations.push({ id:`LOC-${String(nextId).padStart(3,'0')}`, name, level, parent, objects:0, status:'review' });
+  closeLayers();
+  renderLocations();
+  showToast(`${name} добавлена на проверку`);
+});
+document.querySelectorAll('[data-connection-action]').forEach((button) => button.addEventListener('click', () => showToast(`${button.dataset.connectionAction}: параметры подключения открыты`)));
 document.getElementById('newSelectionButton').addEventListener('click', () => openSelectionModal(new Set()));
 document.querySelectorAll('[data-selection-filter]').forEach((button) => button.addEventListener('click', () => {
   state.selectionFilter = button.dataset.selectionFilter;
