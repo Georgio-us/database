@@ -53,7 +53,7 @@
             <kbd>⌘ K</kbd>
           </div>
           <div class="topbar-actions">
-            <button class="icon-button notification" aria-label="Уведомления"><span data-icon="bell"></span><i></i></button>
+            <button class="icon-button notification" id="notificationButton" aria-label="Уведомления"><span data-icon="bell"></span><i></i></button>
             <button class="secondary-button" id="importButton"><span data-icon="upload"></span>Импорт</button>
             <button class="primary-button" id="addButton"><span data-icon="plus"></span>Добавить объект</button>
           </div>
@@ -366,6 +366,17 @@
 
     <div class="overlay" id="overlay"></div>
 
+    <aside class="notification-panel" id="notificationPanel" aria-hidden="true">
+      <div class="notification-panel-head"><div><h2>Уведомления</h2><span>4 новых события</span></div><button id="markNotificationsRead">Отметить прочитанными</button></div>
+      <div class="notification-list">
+        <button data-notification-property="OD-204"><span class="notification-kind blue" data-icon="edit"></span><span><strong>Изменена цена объекта</strong><small>Игорь Мельник обновил Генуэзскую, 3Б</small><time>12 минут назад</time></span><i></i></button>
+        <button data-notification-property="OD-198"><span class="notification-kind amber" data-icon="clock"></span><span><strong>Нужно подтвердить актуальность</strong><small>Фонтанская дорога, 49 - срок сегодня</small><time>1 час назад</time></span><i></i></button>
+        <button data-notification-section="Публикации"><span class="notification-kind red" data-icon="send"></span><span><strong>Ошибка публикации DIM.RIA</strong><small>Не принято описание объекта OD-187</small><time>2 часа назад</time></span><i></i></button>
+        <button data-notification-section="Импорт"><span class="notification-kind gray" data-icon="upload"></span><span><strong>Импорт завершён с ошибками</strong><small>Одна строка сохранена в отчёте</small><time>вчера, 17:45</time></span></button>
+      </div>
+      <button class="notification-panel-foot" id="openAllNotifications">Открыть журнал действий</button>
+    </aside>
+
     <aside class="detail-drawer" id="detailDrawer" aria-hidden="true">
       <div class="drawer-head"><div><span class="drawer-code" id="drawerCode">OD-204</span><span class="status-badge active" id="drawerStatusBadge">Активен</span></div><button class="icon-button" id="drawerClose" aria-label="Закрыть"><span data-icon="close"></span></button></div>
       <div class="drawer-photo" id="drawerPhoto"><div class="photo-count"><span data-icon="image"></span> <span id="drawerPhotoCount">12 фото</span></div></div>
@@ -625,7 +636,7 @@
     </div>
 
     <div class="modal client-preview-modal" id="clientPreviewModal" aria-hidden="true">
-      <div class="client-preview-head"><div><span class="client-brand">Estate Base</span><small>Подборка недвижимости</small></div><div><button class="secondary-button" id="copyPreviewLinkButton"><span data-icon="layers"></span>Скопировать ссылку</button><button class="icon-button modal-close" aria-label="Закрыть"><span data-icon="close"></span></button></div></div>
+      <div class="client-preview-head"><div><span class="client-brand">Estate Base</span><small>Подборка недвижимости</small></div><div><button class="secondary-button" id="telegramPreviewButton"><span data-icon="send"></span>Telegram</button><button class="secondary-button" id="copyPreviewLinkButton"><span data-icon="layers"></span>Скопировать ссылку</button><button class="icon-button modal-close" aria-label="Закрыть"><span data-icon="close"></span></button></div></div>
       <div class="client-preview-body"><p class="eyebrow">Персональная подборка</p><h2 id="clientPreviewTitle">Квартиры для Елены</h2><p id="clientPreviewNote">Подобрали варианты по вашим параметрам.</p><div class="client-property-grid" id="clientPropertyGrid"></div><div class="client-preview-foot"><span>Есть вопросы по объектам?</span><strong>Анна Коваль · агентство недвижимости</strong></div></div>
     </div>
 

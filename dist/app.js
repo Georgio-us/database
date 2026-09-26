@@ -225,7 +225,7 @@ function selectionRowTemplate(selection) {
     <div class="selection-object-count"><strong>${items.length} ${items.length === 1 ? 'объект' : items.length < 5 ? 'объекта' : 'объектов'}</strong><small>от $${Math.min(...items.map((item) => Number(String(item.price).replace(/\D/g,'')) || 0)).toLocaleString('ru-RU')}</small></div>
     <div class="selection-activity"><strong>${activityLabel}</strong><small>${escapeHTML(selection.activity)}</small></div>
     <div class="selection-agent"><span class="agent-avatar">${selection.initials}</span>${escapeHTML(selection.agent)}</div>
-    <div class="selection-actions"><button data-selection-preview="${selection.id}" aria-label="Открыть клиентский вид">${icon('layers')}</button><button data-selection-copy="${selection.id}" aria-label="Скопировать ссылку">${icon('send')}</button></div>
+    <div class="selection-actions"><button data-selection-preview="${selection.id}" aria-label="Открыть клиентский вид">${icon('layers')}</button><button data-selection-telegram="${selection.id}" aria-label="Поделиться в Telegram">${icon('send')}</button><button data-selection-copy="${selection.id}" aria-label="Скопировать ссылку">${icon('file')}</button></div>
   </article>`;
 }
 
@@ -240,6 +240,7 @@ function renderSelections() {
   document.querySelector('[data-selection-filter="draft"] span').textContent = selections.filter((selection) => selection.status === 'draft').length;
   list.innerHTML = items.length ? items.map(selectionRowTemplate).join('') : '<div class="selection-empty"><strong>Подборки не найдены</strong><p>Измените фильтр или создайте новую подборку.</p></div>';
   list.querySelectorAll('[data-selection-preview]').forEach((button) => button.addEventListener('click', () => openClientPreview(button.dataset.selectionPreview)));
+  list.querySelectorAll('[data-selection-telegram]').forEach((button) => button.addEventListener('click', () => shareSelectionToTelegram(button.dataset.selectionTelegram)));
   list.querySelectorAll('[data-selection-copy]').forEach((button) => button.addEventListener('click', () => copySelectionLink(button.dataset.selectionCopy)));
 }
 
@@ -591,6 +592,11 @@ async function copySelectionLink(selectionId) {
   catch { showToast('Ссылка подготовлена для отправки'); }
 }
 
+function shareSelectionToTelegram(selectionId) {
+  const selection = selections.find((item) => item.id === selectionId);
+  showToast(`Telegram: ссылка «${selection?.title || 'Подборка'}» подготовлена`);
+}
+
 function updateBulkBar() {
   const count = state.selected.size;
   document.getElementById('selectedCount').textContent = count;
@@ -672,7 +678,12 @@ function closeLayers() {
   addModal.classList.remove('open'); addModal.setAttribute('aria-hidden','true');
   importModal.classList.remove('open'); importModal.setAttribute('aria-hidden','true');
   selectionModal.classList.remove('open'); selectionModal.setAttribute('aria-hidden','true');
+  publicationModal.classList.remove('open'); publicationModal.setAttribute('aria-hidden','true');
+  teamMemberModal.classList.remove('open'); teamMemberModal.setAttribute('aria-hidden','true');
+  roleSettingsModal.classList.remove('open'); roleSettingsModal.setAttribute('aria-hidden','true');
+  locationModal.classList.remove('open'); locationModal.setAttribute('aria-hidden','true');
   clientPreviewModal.classList.remove('open'); clientPreviewModal.setAttribute('aria-hidden','true');
+  document.getElementById('notificationPanel').classList.remove('open'); document.getElementById('notificationPanel').setAttribute('aria-hidden','true');
   document.getElementById('sidebar').classList.remove('open');
   overlay.classList.remove('visible'); document.body.style.overflow = '';
 }
@@ -1133,6 +1144,21 @@ document.getElementById('changeAgentButton').addEventListener('click', () => sho
 document.getElementById('addDocumentButton').addEventListener('click', () => showToast('Документ отмечен в карточке объекта'));
 document.getElementById('editOwnerButton').addEventListener('click', () => openFullEditForm('contact'));
 document.getElementById('menuButton').addEventListener('click', () => { document.getElementById('sidebar').classList.add('open'); showOverlay(); });
+document.getElementById('notificationButton').addEventListener('click', () => {
+  const panel = document.getElementById('notificationPanel');
+  const willOpen = !panel.classList.contains('open');
+  panel.classList.toggle('open', willOpen);
+  panel.setAttribute('aria-hidden', String(!willOpen));
+});
+document.getElementById('markNotificationsRead').addEventListener('click', () => {
+  document.querySelector('.notification-panel-head span').textContent = 'Нет новых событий';
+  document.querySelectorAll('.notification-list > button > i').forEach((dot) => dot.remove());
+  document.querySelector('#notificationButton > i').hidden = true;
+  showToast('Уведомления отмечены прочитанными');
+});
+document.querySelectorAll('[data-notification-property]').forEach((button) => button.addEventListener('click', () => { closeLayers(); showAppSection('Объекты'); openDrawer(button.dataset.notificationProperty); }));
+document.querySelectorAll('[data-notification-section]').forEach((button) => button.addEventListener('click', () => { closeLayers(); showAppSection(button.dataset.notificationSection); }));
+document.getElementById('openAllNotifications').addEventListener('click', () => { closeLayers(); showToast('Полный журнал будет связан с аудитом backend'); });
 
 const sectionCopy = {
   'Импорт': { icon:'upload', eyebrow:'Наполнение базы', description:'История загрузок Excel и CSV, проверка строк и найденные дубли.', title:'Импорт объектов', text:'Мастер загрузки уже доступен кнопкой «Импорт». Здесь появятся история операций и разбор ошибок.' },
@@ -1319,6 +1345,7 @@ document.getElementById('selectionForm').addEventListener('submit', (event) => {
   showToast(`${selection.id} создана как черновик`);
 });
 document.getElementById('copyPreviewLinkButton').addEventListener('click', () => copySelectionLink(state.activeSelectionId));
+document.getElementById('telegramPreviewButton').addEventListener('click', () => shareSelectionToTelegram(state.activeSelectionId));
 
 let toastTimer;
 function showToast(message) {

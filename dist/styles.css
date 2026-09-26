@@ -182,7 +182,7 @@ kbd { border: 1px solid var(--line); border-bottom-color: var(--line-strong); bo
 .selection-search { width: 220px; height: 36px; display: flex; align-items: center; gap: 7px; margin-bottom: 13px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: 7px; }
 .selection-search svg { width: 15px; color: var(--soft); }
 .selection-search input { width: 100%; border: 0; outline: 0; }
-.selection-list-head, .selection-row { display: grid; grid-template-columns: minmax(250px,1.4fr) 100px minmax(180px,.85fr) minmax(145px,.65fr) 96px; align-items: center; gap: 16px; }
+.selection-list-head, .selection-row { display: grid; grid-template-columns: minmax(250px,1.4fr) 100px minmax(180px,.85fr) minmax(145px,.65fr) 120px; align-items: center; gap: 16px; }
 .selection-list-head { min-height: 40px; padding: 0 18px; border-bottom: 1px solid var(--line); color: var(--soft); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
 .selection-row { min-height: 82px; padding: 10px 18px; border-bottom: 1px solid var(--line); }
 .selection-row:last-child { border-bottom: 0; }
@@ -206,6 +206,28 @@ kbd { border: 1px solid var(--line); border-bottom-color: var(--line-strong); bo
 .selection-actions button { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 7px; background: white; color: #475467; }
 .selection-actions button:hover { color: var(--blue); border-color: #b8c8df; }
 .selection-actions svg { width: 15px; }
+.notification-panel { position: fixed; top: 62px; right: 22px; z-index: 65; width: min(390px,calc(100vw - 28px)); border: 1px solid var(--line); border-radius: 10px; background: white; box-shadow: 0 20px 55px rgba(16,24,40,.2); opacity: 0; pointer-events: none; transform: translateY(-8px); transition: .18s ease; }
+.notification-panel.open { opacity: 1; pointer-events: auto; transform: translateY(0); }
+.notification-panel-head { min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 15px; border-bottom: 1px solid var(--line); }
+.notification-panel-head h2 { margin: 0; font-size: 15px; }
+.notification-panel-head span { display: block; margin-top: 4px; color: #98a2b3; font-size: 8px; }
+.notification-panel-head button { border: 0; background: transparent; color: var(--blue); font-size: 8px; }
+.notification-list > button { width: 100%; min-height: 72px; display: grid; grid-template-columns: 34px minmax(0,1fr) 7px; align-items: flex-start; gap: 10px; padding: 12px 15px; border: 0; border-bottom: 1px solid var(--line); background: white; text-align: left; }
+.notification-list > button:hover { background: #fafbfc; }
+.notification-list > button > span:nth-child(2) { min-width: 0; }
+.notification-list strong, .notification-list small, .notification-list time { display: block; }
+.notification-list strong { font-size: 9px; }
+.notification-list small { margin-top: 4px; color: #667085; font-size: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.notification-list time { margin-top: 5px; color: #98a2b3; font-size: 7px; }
+.notification-list > button > i { width: 6px; height: 6px; margin-top: 5px; border-radius: 50%; background: var(--blue); }
+.notification-kind { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; }
+.notification-kind svg { width: 15px; }
+.notification-kind.blue { color: var(--blue); background: var(--blue-soft); }
+.notification-kind.amber { color: #a66a16; background: var(--amber-soft); }
+.notification-kind.red { color: #b34444; background: #feecec; }
+.notification-kind.gray { color: #667085; background: #f2f4f7; }
+.notification-panel-foot { width: 100%; height: 42px; border: 0; background: white; color: #475467; font-size: 9px; font-weight: 600; }
+.notification-panel-foot:hover { color: var(--blue); }
 .selection-empty { padding: 64px 20px; text-align: center; color: var(--muted); }
 .selection-modal { width: min(760px,calc(100vw - 32px)); }
 .selection-modal form { padding: 20px 24px 0; }
